@@ -1,0 +1,250 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#060813] text-gray-100 font-sans antialiased overflow-x-hidden transition-colors duration-300;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 15, 25, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.4);
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.glass-card {
+  background: rgba(31, 41, 55, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(31, 41, 55, 0.4);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Glowing Ambient Gradients */
+.glow-bg-blue {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-bg-purple {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0) 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* FullCalendar Custom Theming */
+.fc {
+  --fc-border-color: rgba(255, 255, 255, 0.05);
+  --fc-daygrid-event-dot-width: 8px;
+  --fc-page-bg-color: transparent;
+  --fc-event-bg-color: #3b82f6;
+  --fc-event-border-color: #3b82f6;
+  --fc-event-text-color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+.dark .fc {
+  --fc-border-color: rgba(255, 255, 255, 0.05);
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 0;
+}
+
+.fc .fc-daygrid-day-number {
+  color: #d1d5db;
+  font-size: 0.9rem;
+  padding: 6px 8px;
+}
+
+.fc-day-today {
+  background: rgba(59, 130, 246, 0.05) !important;
+}
+
+.fc-event {
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  padding: 2px 4px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: grab;
+}
+
+.fc-event:active {
+  cursor: grabbing;
+}
+
+/* Habit Tracker annual grid heatmap */
+.habit-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+/* Progress Rings */
+.progress-ring__circle {
+  transition: stroke-dashoffset 0.35s;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* Custom Multi-Theme Presets Override */
+
+/* 1. Cyberpunk Theme */
+.theme-cyberpunk body {
+  background: #070110 !important;
+  color: #00ffff !important;
+}
+.theme-cyberpunk .glass-panel {
+  background: rgba(13, 1, 24, 0.8) !important;
+  border: 1px solid rgba(255, 0, 128, 0.4) !important;
+  box-shadow: 0 0 15px rgba(255, 0, 128, 0.15) !important;
+}
+.theme-cyberpunk h1, .theme-cyberpunk h2, .theme-cyberpunk h3, .theme-cyberpunk h4, .theme-cyberpunk span, .theme-cyberpunk label {
+  color: #ff007f !important;
+  text-shadow: 0 0 8px rgba(255, 0, 127, 0.3) !important;
+}
+.theme-cyberpunk button, .theme-cyberpunk input, .theme-cyberpunk select, .theme-cyberpunk textarea {
+  border-color: rgba(0, 255, 255, 0.3) !important;
+}
+
+/* 2. Dark Hacker Theme */
+.theme-hacker body {
+  background: #000000 !important;
+  color: #39ff14 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+.theme-hacker .glass-panel {
+  background: rgba(5, 5, 5, 0.98) !important;
+  border: 1px solid rgba(57, 255, 20, 0.3) !important;
+}
+.theme-hacker h1, .theme-hacker h2, .theme-hacker h3, .theme-hacker h4, .theme-hacker span, .theme-hacker label {
+  color: #39ff14 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+.theme-hacker button, .theme-hacker input, .theme-hacker select, .theme-hacker textarea {
+  background: #000 !important;
+  color: #39ff14 !important;
+  border-color: rgba(57, 255, 20, 0.4) !important;
+}
+
+/* 3. Apple Theme */
+.theme-apple body {
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+}
+.theme-apple .glass-panel {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(25px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05) !important;
+}
+.theme-apple h1, .theme-apple h2, .theme-apple h3, .theme-apple h4, .theme-apple span, .theme-apple label {
+  color: #1d1d1f !important;
+}
+
+/* 4. Glass Theme */
+.theme-glass body {
+  background: radial-gradient(circle at top left, #0e122b, #030511) !important;
+}
+.theme-glass .glass-panel {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(30px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35) !important;
+}
+
+/* 5. Sunset Amber Theme */
+.theme-sunset body {
+  background: radial-gradient(circle at top right, #200f07, #060307) !important;
+}
+.theme-sunset .glass-panel {
+  background: rgba(35, 18, 10, 0.6) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+}
+
+/* 6. Deep Space Indigo Theme */
+.theme-indigo body {
+  background: radial-gradient(circle at center, #0f0c29, #050311) !important;
+}
+.theme-indigo .glass-panel {
+  background: rgba(18, 15, 45, 0.65) !important;
+  border: 1px solid rgba(129, 140, 248, 0.25) !important;
+}
+
+/* 7. Emerald Forest Theme */
+.theme-emerald body {
+  background: radial-gradient(circle at bottom left, #051a13, #020906) !important;
+}
+.theme-emerald .glass-panel {
+  background: rgba(6, 30, 22, 0.65) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+/* --- ACCESSIBILITY STYLES --- */
+.high-contrast {
+  filter: contrast(125%);
+}
+.high-contrast .glass-panel {
+  border: 2px solid #ffffff !important;
+  background: #000000 !important;
+}
+
+.reduce-motion * {
+  animation: none !important;
+  transition: none !important;
+}
+
