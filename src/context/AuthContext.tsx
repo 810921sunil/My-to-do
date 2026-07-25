@@ -18,6 +18,7 @@ interface AuthContextType {
   loginWithOtp: (phone: string) => Promise<void>;
   verifyOtp: (code: string) => Promise<void>;
   loginAsGuest: () => void;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -140,6 +141,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('zenith_user', JSON.stringify(guestUser));
   };
 
+  const resetPassword = async (email: string) => {
+    setLoading(true);
+    try {
+      console.log(`Password reset link sent to ${email}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('zenith_user');
@@ -156,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithOtp,
         verifyOtp,
         loginAsGuest,
+        resetPassword,
         logout,
       }}
     >

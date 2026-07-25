@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
 import { 
-  Menu, 
+  Search, 
+  Command, 
+  Bell, 
+  Plus, 
   Sun, 
   CloudSun, 
   Moon, 
   CloudRain, 
-  Bell, 
-  Plus, 
-  Calendar, 
-  Sparkles,
-  ClipboardList,
-  Flame,
-  CheckCircle,
+  Flame, 
+  CheckCircle, 
+  ClipboardList, 
   Clock,
-  Search,
-  Laptop,
-  Droplets,
-  Keyboard,
-  Columns
+  Sparkles,
+  Columns,
+  ShieldCheck,
+  UserCheck,
+  Lock,
+  Menu,
+  Keyboard
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
+import { AuthModal } from './AuthModal';
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -41,11 +43,12 @@ export const Header: React.FC<HeaderProps> = ({
   isSplitScreen,
   onToggleSplitScreen
 }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { weather, quote, tasks, habits, transactions, toggleDarkMode, logWater } = useData();
   const [greeting, setGreeting] = useState('Welcome back');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showQuickAddDropdown, setShowQuickAddDropdown] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState<any[]>([]);
 
   // Command Palette Overlay state
@@ -302,6 +305,34 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
+        {/* Firebase User Authentication Profile Badge */}
+        <div>
+          {user ? (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 transition-all text-left"
+            >
+              <img
+                src={user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120'}
+                alt={user.displayName}
+                className="w-6 h-6 rounded-full object-cover border border-blue-500/50"
+              />
+              <div className="hidden lg:block text-left">
+                <span className="text-xs font-bold text-gray-200 block line-clamp-1">{user.displayName}</span>
+                <span className="text-[9px] text-blue-400 font-extrabold uppercase block">{user.email || 'Verified Account'}</span>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-glow transition-all"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Sign In / Register</span>
+            </button>
+          )}
+        </div>
+
         {/* Notifications Panel */}
         <div className="relative">
           <button 
@@ -433,6 +464,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       )}
 
+      {/* --- FIREBASE AUTHENTICATION OVERLAY MODAL --- */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
     </header>
   );
 };
