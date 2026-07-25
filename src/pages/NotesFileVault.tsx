@@ -298,10 +298,11 @@ export const NotesFileVault: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
               {filteredNotes.map(n => (
-                <button
+                <div
                   key={n.id}
                   onClick={() => setSelectedNoteId(n.id)}
-                  className={`w-full p-3.5 rounded-2xl border text-left transition-all relative group flex flex-col gap-1.5 ${
+                  role="button"
+                  className={`w-full p-3.5 rounded-2xl border text-left transition-all relative group flex flex-col gap-1.5 cursor-pointer ${
                     selectedNoteId === n.id 
                       ? 'bg-blue-600/10 border-blue-500/30' 
                       : 'bg-white/[0.01] hover:bg-white/[0.03] border-white/5'
@@ -338,7 +339,7 @@ export const NotesFileVault: React.FC = () => {
                       </span>
                     ))}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>

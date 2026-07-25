@@ -19,6 +19,9 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    if (error?.message?.includes('removeChild') || error?.message?.includes('recaptcha')) {
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
 
