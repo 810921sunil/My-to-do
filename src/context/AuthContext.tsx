@@ -111,16 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(null);
           }
         } else {
-          // Default demo user for instant web dashboard access
-          const defaultUser: UserProfile = {
-            uid: 'demo_user_123',
-            email: 'user@zenithlife.app',
-            displayName: 'Sunil (Developer)',
-            photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
-            isGuest: false,
-          };
-          setUser(defaultUser);
-          localStorage.setItem('zenith_user', JSON.stringify(defaultUser));
+          setUser(null);
         }
       }
       setLoading(false);
