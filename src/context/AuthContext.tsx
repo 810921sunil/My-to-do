@@ -51,9 +51,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Synchronize Auth state strictly with Firebase Authentication Server
+  // Synchronize Auth state with Firebase and restore session immediately
   useEffect(() => {
+    // 1. Instant local session restore
+    const savedUser = localStorage.getItem('zenith_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {}
+    }
+
+    // 2. Safety timeout: never stay stuck on loading screen longer than 1 second
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    // 3. Listen to Firebase auth changes
     const unsubscribe = auth.onAuthStateChanged(async (fbUser) => {
+      clearTimeout(timer);
       if (fbUser) {
         try {
           const userDocRef = doc(db, 'Users', fbUser.uid);
@@ -81,7 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               isGuest: false,
               phoneNumber: fbUser.phoneNumber || '',
             };
-            // Create official record in Cloud Firestore Users collection
             await setDoc(userDocRef, {
               uid: fbUser.uid,
               fullName: profile.displayName,
@@ -101,14 +115,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (e) {
           console.error('Firestore document fetch error', e);
         }
-      } else {
-        setUser(null);
-        localStorage.removeItem('zenith_user');
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
   // 1. Strict Real Email & Password Login via Firebase Auth
@@ -223,6 +237,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem('zenith_user');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#060813] text-gray-100 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-glow mb-4 border border-white/10 animate-pulse">
+          <img src="./logo.png" alt="Life OS" className="w-full h-full object-cover" />
+        </div>
+        <h1 className="text-xl font-extrabold text-white tracking-wider">Life OS</h1>
+        <p className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest mt-1">Plan • Track • Achieve</p>
+        <div className="mt-6 flex items-center gap-2 text-xs text-gray-400 font-mono">
+          <div className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></div>
+          <span>Loading Workspace...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider

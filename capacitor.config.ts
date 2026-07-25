@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Life OS',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    cleartext: true
   }
 };
 
