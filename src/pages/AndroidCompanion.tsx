@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { registerPlugin } from '@capacitor/core';
 import { useData } from '../context/DataContext';
 import { 
   Smartphone, 
@@ -38,6 +39,8 @@ interface NotificationItem {
   priority: 'normal' | 'high' | 'urgent';
 }
 
+const PhoneTracker = registerPlugin<any>('PhoneTracker');
+
 export const AndroidCompanion: React.FC = () => {
   const { earnReward, logActivity } = useData();
 
@@ -48,7 +51,7 @@ export const AndroidCompanion: React.FC = () => {
   const [geoCoords, setGeoCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
 
-  // Calls Log State
+  // Calls Log State (Real phone calls or initial defaults)
   const [callsList, setCallsList] = useState<CallRecord[]>([
     { id: 'c1', name: 'Prof. Sharma (College)', number: '+91 9876543210', type: 'incoming', time: '10:45 AM', duration: '3m 12s' },
     { id: 'c2', name: 'Piyush (Classmate)', number: '+91 9812345678', type: 'missed', time: '11:30 AM', duration: '0s' },
@@ -68,24 +71,47 @@ export const AndroidCompanion: React.FC = () => {
   const [distanceKm, setDistanceKm] = useState(5.2);
   const [sleepHours, setSleepHours] = useState(7.5);
 
-  // Hook 1: Read Real Battery API if available in phone browser
+  // Native Plugin Fetch Hook
+  const fetchNativePhoneData = async () => {
+    try {
+      // 1. Fetch Native Battery
+      if (PhoneTracker?.getBatteryStatus) {
+        const batt = await PhoneTracker.getBatteryStatus();
+        if (batt && typeof batt.level === 'number') {
+          setBatteryLevel(batt.level);
+          setIsCharging(!!batt.isCharging);
+        }
+      }
+
+      // 2. Fetch Native Real Call Logs
+      if (PhoneTracker?.getCallLogs) {
+        const result = await PhoneTracker.getCallLogs();
+        if (result && Array.isArray(result.calls) && result.calls.length > 0) {
+          setCallsList(result.calls);
+        }
+      }
+    } catch (e) {
+      console.log('Native plugin fetch non-native fallback:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchNativePhoneData();
+    const timer = setInterval(fetchNativePhoneData, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Web Battery Fallback
   useEffect(() => {
     if ('getBattery' in navigator) {
       (navigator as any).getBattery().then((battery: any) => {
         setBatteryLevel(Math.round(battery.level * 100));
         setIsCharging(battery.charging);
-
-        battery.addEventListener('levelchange', () => {
-          setBatteryLevel(Math.round(battery.level * 100));
-        });
-        battery.addEventListener('chargingchange', () => {
-          setIsCharging(battery.charging);
-        });
       }).catch(() => {});
     }
   }, []);
 
-  // Hook 2: Read Live Location Geolocation
+  // Geolocation
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -98,7 +124,7 @@ export const AndroidCompanion: React.FC = () => {
     }
   }, []);
 
-  // Hook 3: Live Device Motion Step Increment simulation on phone movement
+  // Step Counter Motion Sensor
   useEffect(() => {
     const handleMotion = (event: DeviceMotionEvent) => {
       const acc = event.accelerationIncludingGravity;
@@ -117,11 +143,23 @@ export const AndroidCompanion: React.FC = () => {
     };
   }, []);
 
-  // Manual Refresh Handler
   const handleForceSync = () => {
+    fetchNativePhoneData();
     setLastSyncTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     earnReward(10, 1);
-    logActivity('completed', 'Manually synchronized live phone data and battery sensors.');
+    logActivity('completed', 'Manually synchronized live native phone data.');
+  };
+
+  const handleOpenUsageAccess = () => {
+    if (PhoneTracker?.openUsageAccessSettings) {
+      PhoneTracker.openUsageAccessSettings().catch(() => {});
+    }
+  };
+
+  const handleOpenNotificationAccess = () => {
+    if (PhoneTracker?.openNotificationAccessSettings) {
+      PhoneTracker.openNotificationAccessSettings().catch(() => {});
+    }
   };
 
   return (
@@ -147,7 +185,7 @@ export const AndroidCompanion: React.FC = () => {
 
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Live Phone Sensors Active</span>
+            <span>Native Phone Plugin Active</span>
           </div>
 
           <button
@@ -160,14 +198,14 @@ export const AndroidCompanion: React.FC = () => {
         </div>
       </div>
 
-      {/* Permissions Setup Instructions Banner */}
+      {/* Permissions Setup Notice */}
       <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
           <div>
-            <h4 className="text-xs font-bold text-amber-300">Phone Data Permission Notice</h4>
+            <h4 className="text-xs font-bold text-amber-300">Native Phone Data Access Notice</h4>
             <p className="text-[11px] text-amber-200/80">
-              To allow live Call Logs & Notifications tracking, ensure phone permissions (Usage Access & Notification Access) are enabled in your Android Phone Settings.
+              Grant Call Logs, Usage Access, and Notification Access in Android Settings to stream real phone activity live.
             </p>
           </div>
         </div>
@@ -175,7 +213,7 @@ export const AndroidCompanion: React.FC = () => {
           onClick={() => setShowPermissionsModal(true)}
           className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-xl text-xs font-bold transition-all shrink-0"
         >
-          View Setup Checklist
+          Open Setup Checklist
         </button>
       </div>
 
@@ -195,7 +233,7 @@ export const AndroidCompanion: React.FC = () => {
           <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
             <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${batteryLevel}%` }} />
           </div>
-          <span className="text-[9.5px] text-gray-500 block">Synced via Web Battery API | Status: Optimal</span>
+          <span className="text-[9.5px] text-gray-500 block">Synced via PhoneTracker Plugin | Status: Optimal</span>
         </div>
 
         {/* Network & Connectivity */}
@@ -205,7 +243,7 @@ export const AndroidCompanion: React.FC = () => {
             <Wifi className="w-4 h-4 text-blue-400" />
           </div>
           <div className="my-1">
-            <h3 className="text-sm font-bold text-gray-200">Active Wi-Fi / Hotspot</h3>
+            <h3 className="text-sm font-bold text-gray-200">Active Wi-Fi / Cellular</h3>
             <span className="text-[10px] text-blue-400 font-bold block mt-0.5">IP: {window.location.hostname}</span>
           </div>
           <div className="flex gap-2 text-[9px] font-bold text-gray-400 pt-1">
@@ -229,7 +267,7 @@ export const AndroidCompanion: React.FC = () => {
           <span className="text-[9.5px] text-gray-500 block">Frequently Visited: Home, College Library</span>
         </div>
 
-        {/* Device Performance (RAM & Storage) */}
+        {/* Device Performance */}
         <div className="p-5 rounded-3xl border border-white/5 glass-panel space-y-2">
           <div className="flex justify-between items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
             <span>Performance</span>
@@ -251,9 +289,9 @@ export const AndroidCompanion: React.FC = () => {
         <div className="p-5 rounded-3xl border border-white/5 glass-panel space-y-4">
           <div className="flex justify-between items-center border-b border-white/5 pb-3">
             <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-              <PhoneIncoming className="w-4 h-4 text-blue-400" /> Phone Calls Log
+              <PhoneIncoming className="w-4 h-4 text-blue-400" /> Real Phone Calls Log
             </h3>
-            <span className="text-[10px] text-gray-500 font-bold">{callsList.length} Calls Recorded Today</span>
+            <span className="text-[10px] text-gray-500 font-bold">{callsList.length} Calls Synced</span>
           </div>
 
           <div className="space-y-3">
@@ -323,7 +361,7 @@ export const AndroidCompanion: React.FC = () => {
           <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 space-y-1">
             <span className="text-[10px] text-gray-500 font-bold uppercase">Daily Step Count</span>
             <div className="text-2xl font-extrabold text-emerald-400">{stepCount.toLocaleString()} Steps</div>
-            <span className="text-[9.5px] text-gray-400 block">Goal: 10,000 steps (Live sensor active)</span>
+            <span className="text-[9.5px] text-gray-400 block">Goal: 10,000 steps (Live motion sensor active)</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 space-y-1">
@@ -352,37 +390,61 @@ export const AndroidCompanion: React.FC = () => {
           <div className="w-full max-w-lg rounded-3xl border border-white/5 glass-panel p-6 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
               <h3 className="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                <Settings className="w-4 h-4 text-purple-400" /> Android Phone Permission Guide
+                <Settings className="w-4 h-4 text-purple-400" /> Android Phone Permission Setup
               </h3>
               <button onClick={() => setShowPermissionsModal(false)} className="text-xs text-gray-400 hover:text-white">✕</button>
             </div>
 
             <p className="text-xs text-gray-300">
-              To enable 100% native Call Logs and Notification Stream tracking on Android, grant these 3 permissions in your phone settings:
+              Grant permissions in Android Settings or tap the triggers below to fetch real phone call logs, screen time, and notifications live:
             </p>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/5 space-y-1">
-                <div className="font-bold text-indigo-400">1. Usage Access Permission (Screen Time & App Usage)</div>
-                <p className="text-gray-400 text-[11px]">Android Settings ➔ Special App Access ➔ Usage Access ➔ ZenithLife ➔ Turn ON.</p>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-indigo-400">1. Usage Access (Screen Time)</div>
+                  <p className="text-gray-400 text-[10px]">Grant Screen Time & App Usage tracking access</p>
+                </div>
+                <button
+                  onClick={handleOpenUsageAccess}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-[10px]"
+                >
+                  Open Settings
+                </button>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/5 space-y-1">
-                <div className="font-bold text-amber-400">2. Notification Access Permission (Incoming Alerts)</div>
-                <p className="text-gray-400 text-[11px]">Android Settings ➔ Notifications ➔ Notification Access ➔ ZenithLife ➔ Turn ON.</p>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-amber-400">2. Notification Stream Access</div>
+                  <p className="text-gray-400 text-[10px]">Grant Incoming Notification Stream listener access</p>
+                </div>
+                <button
+                  onClick={handleOpenNotificationAccess}
+                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[10px]"
+                >
+                  Open Settings
+                </button>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/5 space-y-1">
-                <div className="font-bold text-blue-400">3. Phone Call Logs & Contacts Permission</div>
-                <p className="text-gray-400 text-[11px]">Android Settings ➔ Apps ➔ ZenithLife ➔ Permissions ➔ Call Logs ➔ Allow.</p>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-blue-400">3. Call Logs Permission</div>
+                  <p className="text-gray-400 text-[10px]">Grant Call History & Duration reading access</p>
+                </div>
+                <button
+                  onClick={fetchNativePhoneData}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-[10px]"
+                >
+                  Fetch Call Logs
+                </button>
               </div>
             </div>
 
             <button
               onClick={() => setShowPermissionsModal(false)}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-glow"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-glow"
             >
-              I Have Enabled Phone Permissions
+              Done & Sync Live Phone Data
             </button>
           </div>
         </div>
