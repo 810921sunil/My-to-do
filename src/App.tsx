@@ -43,8 +43,7 @@ export const AppContent: React.FC = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isSplitScreen, setIsSplitScreen] = useState(false);
   const [secondaryTab, setSecondaryTab] = useState('notes');
-  const pinLockEnabled = localStorage.getItem('zenith_pin_lock_enabled') === 'true';
-  const [pinUnlocked, setPinUnlocked] = useState(!pinLockEnabled);
+  const [pinUnlocked, setPinUnlocked] = useState(true);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
