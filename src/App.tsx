@@ -178,25 +178,27 @@ export const AppContent: React.FC = () => {
     setQuickAddType(null);
   };
 
-  const handleEmailAuthSubmit = (e: React.FormEvent) => {
+  const handleEmailAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      loginWithEmail(email, password);
+      await loginWithEmail(email, password);
+      if (!userMode) changeUserMode('student');
     }
   };
 
-  const handleOtpRequest = (e: React.FormEvent) => {
+  const handleOtpRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpPhone) {
-      loginWithOtp(otpPhone);
+      await loginWithOtp(otpPhone);
       setOtpSent(true);
     }
   };
 
-  const handleOtpVerify = (e: React.FormEvent) => {
+  const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpCode) {
-      verifyOtp(otpCode);
+      await verifyOtp(otpCode);
+      if (!userMode) changeUserMode('student');
     }
   };
 
@@ -446,14 +448,20 @@ export const AppContent: React.FC = () => {
           {/* Social login buttons */}
           <div className="border-t border-white/5 pt-4 space-y-3">
             <button
-              onClick={loginWithGoogle}
+              onClick={async () => {
+                await loginWithGoogle();
+                if (!userMode) changeUserMode('student');
+              }}
               className="w-full py-3 bg-white/5 hover:bg-white/10 text-gray-200 font-semibold border border-white/5 rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
             >
               <Key className="w-4 h-4 text-amber-400" />
               <span>Sign In with Google Dev</span>
             </button>
             <button
-              onClick={loginAsGuest}
+              onClick={() => {
+                loginAsGuest();
+                if (!userMode) changeUserMode('student');
+              }}
               className="w-full py-3 bg-[#060813] hover:bg-white/[0.02] text-blue-400 font-semibold border border-blue-500/10 rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
             >
               <span>Explore as Guest Mode</span>
