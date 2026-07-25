@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { AiChatWidget } from './components/AiChatWidget';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -586,6 +587,7 @@ export const AppContent: React.FC = () => {
       {/* Interactive UI Widgets */}
       <DynamicIsland />
       <FloatingAssistant />
+      <AiChatWidget />
 
       {/* --- QUICK ADD GENERAL OVERLAY MODAL --- */}
       {quickAddType && (

@@ -1,4 +1,4 @@
-// Gemini API Service for ZenithLife OS
+// Gemini API Service for Life OS
 
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || '';
 
@@ -32,7 +32,7 @@ export async function askGeminiAI(
   const currentDate = new Date().toISOString().split('T')[0];
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const systemInstruction = `You are Zenith AI, an intelligent productivity copilot for students and professionals.
+  const systemInstruction = `You are Life OS AI Copilot, an intelligent productivity assistant for students and professionals.
 You understand Hinglish, Hindi, and English natural language fluently.
 Current Date: ${currentDate} (${new Date().toLocaleDateString('en-US', { weekday: 'long' })}). Current Time: ${currentTime}.
 
@@ -50,6 +50,10 @@ Instructions:
      - Convert dates to YYYY-MM-DD format (Default: "${currentDate}").
      - Set "action": "create_task".
 
+   - If the user asks a general question, advice, or greeting (e.g. "how to study 3 hours", "hello", "productivity tip"):
+     - Set "action": "chat".
+     - Provide a warm, intelligent, helpful answer in Hinglish or English.
+
 2. Return ONLY a valid JSON object matching this structure:
 {
   "action": "create_task" or "chat" or "list_tasks",
@@ -63,35 +67,40 @@ Instructions:
   "replyMessage": "Friendly, clear response in Hinglish/English."
 }`;
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemInstruction }] }]
-        })
-      }
-    );
+  // Try API endpoints in sequence
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
 
-    if (response.ok) {
-      const data = await response.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemInstruction }] }]
+          })
+        }
+      );
 
-      try {
-        const parsed: GeminiParsedResponse = JSON.parse(cleanJson);
-        return parsed;
-      } catch (jsonErr) {
-        return {
-          action: 'chat',
-          replyMessage: rawText || "Request processed."
-        };
+      if (response.ok) {
+        const data = await response.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        try {
+          const parsed: GeminiParsedResponse = JSON.parse(cleanJson);
+          return parsed;
+        } catch (jsonErr) {
+          return {
+            action: 'chat',
+            replyMessage: rawText || "Request processed."
+          };
+        }
       }
+    } catch (err) {
+      console.warn(`Gemini API ${model} failed, trying next model...`);
     }
-  } catch (err) {
-    console.warn('Gemini API Direct call failed, running intelligent fallback parser', err);
   }
 
   // Fallback intelligent parser if API call fails or key is unverified
@@ -166,9 +175,18 @@ function fallbackIntelligentParser(query: string, currentDate: string, contextIn
     };
   }
 
-  // General Chat Fallback
+  // General Chat Advice Fallback
+  let adviceReply = `✨ **Gemini Copilot Guidance:**\n`;
+  if (lower.includes('study') || lower.includes('padh') || lower.includes('exam')) {
+    adviceReply += `Consistent study sessions with 45-min Pomodoro blocks generate maximum retention. Try scheduling 2 hours today for core subjects!`;
+  } else if (lower.includes('dsa') || lower.includes('coding') || lower.includes('leetcode')) {
+    adviceReply += `For DSA & Coding: Focus on 2 Medium LeetCode problems daily. Start with Arrays & HashMaps before Binary Trees!`;
+  } else {
+    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "aaj ke task bataw", "add physics lab report tomorrow", ya koi bhi question pooch sakte hain.`;
+  }
+
   return {
     action: 'chat',
-    replyMessage: `✨ Gemini Copilot: Main aapki help kar sakta hu. Aap keh sakte hain "27/07/2026 ke task bataw" ya "add math assignment tomorrow"!`
+    replyMessage: adviceReply
   };
 }
