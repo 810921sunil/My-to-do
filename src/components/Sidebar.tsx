@@ -78,14 +78,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpe
       >
         {/* Brand header */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/5">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-glow">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
+          <img src="./logo.png" alt="Life OS Logo" className="w-10 h-10 rounded-xl shadow-glow object-cover border border-white/10" />
           <div>
-            <h1 className="text-lg font-bold tracking-wide bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              ZenithLife
+            <h1 className="text-lg font-extrabold tracking-wide text-white">
+              Life OS
             </h1>
-            <p className="text-xs text-gray-500 font-medium">Ultimate Life OS</p>
+            <p className="text-[9px] text-cyan-400 font-extrabold uppercase tracking-wider">Plan • Track • Achieve</p>
           </div>
         </div>
 

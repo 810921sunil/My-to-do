@@ -332,13 +332,11 @@ export const AppContent: React.FC = () => {
         
         <div className="w-full max-w-md rounded-3xl border border-white/5 glass-panel p-8 shadow-2xl relative z-10 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-glow">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              ZenithLife OS
+            <img src="./logo.png" alt="Life OS" className="w-16 h-16 rounded-2xl mx-auto shadow-glow border border-white/10 object-cover" />
+            <h1 className="text-2xl font-extrabold tracking-tight text-white">
+              Life OS
             </h1>
-            <p className="text-xs text-gray-500">Sign in to sync your personal metrics vault</p>
+            <p className="text-[11px] text-cyan-400 font-extrabold uppercase tracking-widest">Plan • Track • Achieve</p>
           </div>
 
           {/* Auth Tab selectors */}

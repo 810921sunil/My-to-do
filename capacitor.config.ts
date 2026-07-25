@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.zenithlife.app',
-  appName: 'ZenithLife OS',
+  appName: 'Life OS',
   webDir: 'dist'
 };
 
