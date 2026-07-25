@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions for Auth & Role Security
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isNotBlocked() {
+      return isAuthenticated() && 
+        (!exists(/databases/$(database)/documents/Users/$(request.auth.uid)) ||
+         get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.accountStatus != 'blocked');
+    }
+
+    // Users Collection Security Rules
+    match /Users/{userId} {
+      // Any authenticated user can read user profiles (for networking/contacts)
+      allow read: if isAuthenticated() && isNotBlocked();
+      
+      // Users can only create or update their own profile document
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId) && isNotBlocked() &&
+                     // Prevent users from escalating their own userType to Admin
+                     (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['userType', 'accountStatus']));
+      
+      // Allow deletion only by the account owner or admin
+      allow delete: if isOwner(userId);
+    }
+    
+    // Default Deny All other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
