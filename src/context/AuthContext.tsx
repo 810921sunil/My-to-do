@@ -67,54 +67,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 1000);
 
     // 3. Listen to Firebase auth changes
-    const unsubscribe = auth.onAuthStateChanged(async (fbUser) => {
+    const unsubscribe = auth.onAuthStateChanged((fbUser) => {
       clearTimeout(timer);
       if (fbUser) {
-        try {
-          const userDocRef = doc(db, 'Users', fbUser.uid);
-          const docSnap = await getDoc(userDocRef);
-          
-          let profile: UserProfile;
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            profile = {
-              uid: fbUser.uid,
-              email: fbUser.email || data.email || '',
-              displayName: fbUser.displayName || data.fullName || 'Authorized User',
-              photoURL: fbUser.photoURL || data.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
-              isGuest: false,
-              phoneNumber: fbUser.phoneNumber || data.phoneNumber || '',
-              userType: data.userType || 'Customer',
-              accountStatus: data.accountStatus || 'active'
-            };
-          } else {
-            profile = {
-              uid: fbUser.uid,
-              email: fbUser.email || '',
-              displayName: fbUser.displayName || 'Authorized User',
-              photoURL: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
-              isGuest: false,
-              phoneNumber: fbUser.phoneNumber || '',
-            };
-            await setDoc(userDocRef, {
-              uid: fbUser.uid,
-              fullName: profile.displayName,
-              email: profile.email,
-              phoneNumber: profile.phoneNumber,
-              profilePhoto: profile.photoURL,
-              userType: 'Customer',
-              isVerified: true,
-              accountStatus: 'active',
-              createdAt: Date.now(),
-              lastLogin: Date.now()
-            }, { merge: true });
+        // Construct immediate profile from Firebase user object
+        const profile: UserProfile = {
+          uid: fbUser.uid,
+          email: fbUser.email || '',
+          displayName: fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : 'Authorized User'),
+          photoURL: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
+          isGuest: false,
+          phoneNumber: fbUser.phoneNumber || '',
+          userType: 'Customer',
+          accountStatus: 'active'
+        };
+        setUser(profile);
+        localStorage.setItem('zenith_user', JSON.stringify(profile));
+
+        // Background sync with Firestore (non-blocking)
+        (async () => {
+          try {
+            const userDocRef = doc(db, 'Users', fbUser.uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              const updated: UserProfile = {
+                ...profile,
+                displayName: fbUser.displayName || data.fullName || profile.displayName,
+                userType: data.userType || 'Customer',
+                accountStatus: data.accountStatus || 'active'
+              };
+              setUser(updated);
+              localStorage.setItem('zenith_user', JSON.stringify(updated));
+            } else {
+              await setDoc(userDocRef, {
+                uid: fbUser.uid,
+                fullName: profile.displayName,
+                email: profile.email,
+                phoneNumber: profile.phoneNumber,
+                profilePhoto: profile.photoURL,
+                userType: 'Customer',
+                isVerified: true,
+                accountStatus: 'active',
+                createdAt: Date.now(),
+                lastLogin: Date.now()
+              }, { merge: true });
+            }
+          } catch (e) {
+            console.warn('Non-blocking Firestore sync notice:', e);
           }
-          
-          setUser(profile);
-          localStorage.setItem('zenith_user', JSON.stringify(profile));
-        } catch (e) {
-          console.error('Firestore document fetch error', e);
-        }
+        })();
       }
       setLoading(false);
     });
