@@ -38,6 +38,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error('Error parsing session user', e);
       }
+    } else {
+      // Default to guest user for seamless web experience
+      const defaultUser: UserProfile = {
+        uid: 'user_default',
+        email: 'user@zenithlife.app',
+        displayName: 'Sunil (Developer)',
+        photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
+        isGuest: false,
+      };
+      setUser(defaultUser);
+      localStorage.setItem('zenith_user', JSON.stringify(defaultUser));
     }
     setLoading(false);
   }, []);

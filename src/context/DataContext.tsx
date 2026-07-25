@@ -392,7 +392,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [waterIntake, setWaterIntake] = useState(0);
 
   // User Mode Layout
-  const [userMode, setUserMode] = useState<'student' | 'professional' | null>(null);
+  const [userMode, setUserMode] = useState<'student' | 'professional' | null>(() => {
+    return (localStorage.getItem('zenith_usermode') as any) || 'student';
+  });
 
   // Activities Log
   const [activities, setActivities] = useState<ActivityLog[]>([]);
