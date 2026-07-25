@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  build: {
+    modulePreload: false,
+    target: 'es2015',
+  },
   server: {
     host: true,
     proxy: {
