@@ -34,7 +34,6 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithOtp: (phone: string) => Promise<void>;
   verifyOtp: (code: string) => Promise<void>;
-  loginAsGuest: () => void;
   resetPassword: (email: string) => Promise<void>;
   logout: () => void;
 }
@@ -52,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Synchronize Auth state with Firebase on load
+  // Synchronize Auth state strictly with Firebase Authentication Server
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (fbUser) => {
       if (fbUser) {
@@ -66,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             profile = {
               uid: fbUser.uid,
               email: fbUser.email || data.email || '',
-              displayName: fbUser.displayName || data.fullName || 'Zenith User',
+              displayName: fbUser.displayName || data.fullName || 'Authorized User',
               photoURL: fbUser.photoURL || data.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
               isGuest: false,
               phoneNumber: fbUser.phoneNumber || data.phoneNumber || '',
@@ -77,12 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             profile = {
               uid: fbUser.uid,
               email: fbUser.email || '',
-              displayName: fbUser.displayName || 'Zenith User',
+              displayName: fbUser.displayName || 'Authorized User',
               photoURL: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
               isGuest: false,
               phoneNumber: fbUser.phoneNumber || '',
             };
-            // Create user document in Firestore Users collection
+            // Create official record in Cloud Firestore Users collection
             await setDoc(userDocRef, {
               uid: fbUser.uid,
               fullName: profile.displayName,
@@ -100,19 +99,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(profile);
           localStorage.setItem('zenith_user', JSON.stringify(profile));
         } catch (e) {
-          console.error('Firestore sync error', e);
+          console.error('Firestore document fetch error', e);
         }
       } else {
-        const savedUser = localStorage.getItem('zenith_user');
-        if (savedUser) {
-          try {
-            setUser(JSON.parse(savedUser));
-          } catch (e) {
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
+        setUser(null);
+        localStorage.removeItem('zenith_user');
       }
       setLoading(false);
     });
@@ -120,28 +111,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  // 1. Email & Password Login
+  // 1. Strict Real Email & Password Login via Firebase Auth
   const loginWithEmail = async (email: string, pass: string) => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (err: any) {
-      // Fallback for offline/test mode
-      const mockUser: UserProfile = {
-        uid: 'user_' + Date.now(),
-        email: email,
-        displayName: email.split('@')[0].toUpperCase(),
-        photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
-        isGuest: false,
-      };
-      setUser(mockUser);
-      localStorage.setItem('zenith_user', JSON.stringify(mockUser));
+      console.error('Firebase Email Login Error:', err);
+      throw new Error(err.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Email & Password Registration
+  // 2. Strict Real Email & Password Registration via Firebase Auth
   const registerWithEmail = async (email: string, pass: string, name: string) => {
     setLoading(true);
     try {
@@ -160,42 +143,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastLogin: Date.now()
       });
     } catch (err: any) {
-      const mockUser: UserProfile = {
-        uid: 'user_' + Date.now(),
-        email,
-        displayName: name || email.split('@')[0],
-        photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120',
-        isGuest: false,
-      };
-      setUser(mockUser);
-      localStorage.setItem('zenith_user', JSON.stringify(mockUser));
+      console.error('Firebase Registration Error:', err);
+      throw new Error(err.message || 'Failed to register account.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Google Sign-In
+  // 3. Strict Real Google OAuth Sign-In via Firebase Auth
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (err: any) {
-      const mockUser: UserProfile = {
-        uid: 'google_' + Date.now(),
-        email: 'developer.google@gmail.com',
-        displayName: 'Google Dev User',
-        photoURL: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120',
-        isGuest: false,
-      };
-      setUser(mockUser);
-      localStorage.setItem('zenith_user', JSON.stringify(mockUser));
+      console.error('Firebase Google Sign-In Error:', err);
+      throw new Error(err.message || 'Google Sign-In failed.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 4. Send Real Live Phone SMS OTP
+  // 4. Strict Real Phone SMS OTP Dispatch via Firebase Auth & reCAPTCHA
   const loginWithOtp = async (phone: string) => {
     setLoading(true);
     try {
@@ -209,78 +178,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.confirmationResult = confirmation;
       localStorage.setItem('zenith_temp_phone', phone);
     } catch (err: any) {
-      console.warn('Real SMS Fallback: SMS sent via simulated test gateway');
-      localStorage.setItem('zenith_temp_phone', phone);
+      console.error('Firebase Phone OTP Error:', err);
+      throw new Error(err.message || 'Failed to send SMS OTP.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 5. Verify SMS OTP Code
+  // 5. Strict Real SMS OTP Verification
   const verifyOtp = async (code: string) => {
     setLoading(true);
     try {
       if (window.confirmationResult) {
-        try {
-          await window.confirmationResult.confirm(code);
-        } catch (confirmErr) {
-          console.warn('Firebase confirmation failed, applying test OTP session fallback');
-          const phone = localStorage.getItem('zenith_temp_phone') || '+919876543210';
-          const mockUser: UserProfile = {
-            uid: 'otp_' + Date.now(),
-            email: `${phone.replace('+', '')}@zenithlife.com`,
-            displayName: `User (${phone.slice(-4)})`,
-            photoURL: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120',
-            isGuest: false,
-            phoneNumber: phone,
-          };
-          setUser(mockUser);
-          localStorage.setItem('zenith_user', JSON.stringify(mockUser));
-        }
+        await window.confirmationResult.confirm(code);
       } else {
-        const phone = localStorage.getItem('zenith_temp_phone') || '+919876543210';
-        const mockUser: UserProfile = {
-          uid: 'otp_' + Date.now(),
-          email: `${phone.replace('+', '')}@zenithlife.com`,
-          displayName: `User (${phone.slice(-4)})`,
-          photoURL: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120',
-          isGuest: false,
-          phoneNumber: phone,
-        };
-        setUser(mockUser);
-        localStorage.setItem('zenith_user', JSON.stringify(mockUser));
+        throw new Error('Verification session expired. Please request a new OTP.');
       }
+    } catch (err: any) {
+      console.error('Firebase OTP Verification Error:', err);
+      throw new Error(err.message || 'Invalid SMS OTP code.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 6. Guest Login
-  const loginAsGuest = () => {
-    const guestUser: UserProfile = {
-      uid: 'guest_user',
-      email: 'guest@zenithlife.local',
-      displayName: 'Guest User',
-      photoURL: 'https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=120',
-      isGuest: true,
-    };
-    setUser(guestUser);
-    localStorage.setItem('zenith_user', JSON.stringify(guestUser));
-  };
-
-  // 7. Reset Password Email
+  // 6. Reset Password Link Email
   const resetPassword = async (email: string) => {
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
     } catch (err: any) {
-      console.log(`Password reset link sent to ${email}`);
+      console.error('Firebase Password Reset Error:', err);
+      throw new Error(err.message || 'Failed to send password reset email.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 8. Logout
+  // 7. Secure Logout
   const logout = async () => {
     try {
       await signOut(auth);
@@ -299,7 +234,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle,
         loginWithOtp,
         verifyOtp,
-        loginAsGuest,
         resetPassword,
         logout,
       }}

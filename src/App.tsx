@@ -31,7 +31,7 @@ import { TimePicker12h } from './components/TimePicker12h';
 import { Sparkles, Key } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
-  const { user, loginAsGuest, loginWithEmail, loginWithGoogle, loginWithOtp, verifyOtp } = useAuth();
+  const { user, loginWithEmail, loginWithGoogle, loginWithOtp, verifyOtp } = useAuth();
   const { 
     addTask, addHabit, addTransaction, addNote, 
     userMode, changeUserMode, tasks, updateTask, logActivity 
@@ -454,16 +454,7 @@ export const AppContent: React.FC = () => {
               className="w-full py-3 bg-white/5 hover:bg-white/10 text-gray-200 font-semibold border border-white/5 rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
             >
               <Key className="w-4 h-4 text-amber-400" />
-              <span>Sign In with Google Dev</span>
-            </button>
-            <button
-              onClick={() => {
-                loginAsGuest();
-                if (!userMode) changeUserMode('student');
-              }}
-              className="w-full py-3 bg-[#060813] hover:bg-white/[0.02] text-blue-400 font-semibold border border-blue-500/10 rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
-            >
-              <span>Explore as Guest Mode</span>
+              <span>Sign In with Google Account</span>
             </button>
           </div>
         </div>
