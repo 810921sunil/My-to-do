@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "329584183445",
+    "project_id": "zenithlife-104cd",
+    "storage_bucket": "zenithlife-104cd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329584183445:android:c6eb3a2dd38f7289fbf39c",
+        "android_client_info": {
+          "package_name": "com.zenithlife.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8KBxu_JB6iUvBftAYfmRdDDF4PRK3iAQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
