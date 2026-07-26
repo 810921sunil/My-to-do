@@ -1,55 +1,41 @@
 ---
-title: Gemini AI Integration & Copilot Architecture
+title: Advanced Gemini AI Engine & Voice Copilot
 tags:
   - life-os
   - ai
   - gemini
-  - copilot
-  - architecture
+  - advanced
+  - voice
 date: 2026-07-26
 ---
 
-# 🤖 Gemini AI Integration & Copilot Architecture
+# 🤖 Advanced Life OS Gemini AI Engine
 
 Back to [[00 - Life OS Vault Hub]]
 
-**Life OS** features an embedded **Google Gemini AI Productivity Copilot** capable of understanding natural language prompts in Hinglish, Hindi, and English to manage tasks, optimize daily schedules, and offer study guidance.
+The **Advanced Life OS Gemini AI Engine** extends natural language interaction beyond basic task addition to full multi-action workspace control, habit logging, task completion, date arithmetic, and Text-to-Speech (TTS) voice playback.
 
 ---
 
-## 📅 Past & Future Date Task Queries ("25/07/2026 ko keya task thaa")
+## ⚡ Multi-Action Capability Matrix
 
-To resolve queries asking about past or specific dates (e.g. *"25/07/2026 ko keya task thaa"*), the system inspects **both pending and completed tasks** for the target date:
-
-```
-[User Query: "25/07/2026 ko keya task thaa"]
-                  |
-                  v
-       Extract Date: 2026-07-25
-                  |
-                  v
-       Query Task Vault for 2026-07-25
-       (Matches: Completed Tasks + Pending Tasks)
-                  |
-                  v
-       Returns Formatted Summary:
-       "📋 25/07/2026 ke aapke tasks:
-        1. ✅ [COMPLETED] Call Guests
-        2. ⏳ [PENDING] Chemistry Lab Practical File"
-```
+| Action Intent | Natural Prompt Examples | System Execution |
+| :--- | :--- | :--- |
+| **`create_task`** | `"27/07/2026 add a task for call guests"`, `"kal 5 baje gym session set kar do"` | Extracts clean title, priority, date, and injects into `TaskManager`. |
+| **`complete_task`** | `"math homework complete kar diya"`, `"finish chemistry lab report"` | Finds target task by title match and marks `status: 'completed'`. |
+| **`delete_task`** | `"delete physics assignment"`, `"remove old gym task"` | Locates and removes matching task from vault. |
+| **`list_tasks`** | `"aaj ke task bataw"`, `"25/07/2026 ko keya task thaa"` | Formats and returns active + completed tasks summary for target date. |
+| **`chat`** | `"how to study 3 hours"`, `"DSA roadmap"`, `"motivation"` | Provides personalized behavioral coaching advice. |
 
 ---
 
-## 🔤 Hinglish Spelling Normalizer Matrix
+## 🎙️ Voice Synthesis & Interactive UI
 
-The parser normalizes common phonetic spellings across Hindi/Hinglish dialects:
+1. **Browser Text-to-Speech (`window.speechSynthesis`)**
+   - Optional audio speaker button inside `AiChatWidget.tsx` allowing the AI to read responses out loud.
 
-| Phonetic Input | Normalized Intent |
-| :--- | :--- |
-| `keya`, `kyaa`, `kya`, `kya-kya` | What (Question) |
-| `thaa`, `tha`, `thi`, `hoga`, `hogi` | Date Tense Marker |
-| `bataw`, `batao`, `bata`, `bataiye` | List / Tell (Question) |
-| `kab`, `kabv`, `kab-tak` | When (Question) |
+2. **Smart Date Resolver**
+   - Resolves relative phrases (*"aaj"*, *"kal"*, *"parso"*, *"next Monday"*) and absolute formats (*"27/07/2026"*, *"2026-07-27"*).
 
 ---
 

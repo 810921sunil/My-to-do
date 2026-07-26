@@ -1,9 +1,9 @@
-// Gemini API Service for Life OS
+// Advanced Gemini AI Engine for Life OS
 
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || '';
 
 export interface GeminiParsedResponse {
-  action: 'create_task' | 'chat' | 'list_tasks';
+  action: 'create_task' | 'complete_task' | 'delete_task' | 'list_tasks' | 'chat';
   task?: {
     title: string;
     dueDate?: string;
@@ -11,6 +11,7 @@ export interface GeminiParsedResponse {
     priority?: 'low' | 'medium' | 'high' | 'critical';
     category?: 'college' | 'skill' | 'health' | 'personal' | 'general';
   };
+  targetTaskTitle?: string;
   replyMessage: string;
 }
 
@@ -39,7 +40,7 @@ export async function askGeminiAI(
     ?.map(m => `${m.sender.toUpperCase()}: ${m.text}`)
     ?.join('\n') || 'No previous messages';
 
-  const systemInstruction = `You are Life OS AI Copilot, an intelligent productivity assistant for students and professionals.
+  const systemInstruction = `You are Advanced Life OS AI Copilot, a high-intelligence productivity engine.
 You understand Hinglish, Hindi, and English natural language fluently.
 Current Date: ${currentDate} (${new Date().toLocaleDateString('en-US', { weekday: 'long' })}). Current Time: ${currentTime}.
 
@@ -49,35 +50,33 @@ ${historyText}
 User Query: "${userQuery}"
 Context Data / Tasks Vault: ${contextInfo || 'No tasks listed'}
 
-CRITICAL CLASSIFICATION & SANITIZATION RULES:
+ADVANCED MULTI-ACTION INTENT RULES:
 
-1. QUESTION / INQUIRY PRECEDENCE (NEVER CREATE A TASK WHEN USER IS ASKING A QUESTION):
-   - If the query contains question markers or inquiry words (e.g. "keya", "kya", "kyaa", "thaa", "tha", "kab", "kabv", "kaun", "kahan", "kyun", "kyu", "bataw", "batao", "dikhao", "check", "when", "what", "where", "why", "how", "tell", "show", "list"):
-     - DO NOT CREATE A TASK. Set "action": "list_tasks" or "chat".
-     - Search the Context Data / Tasks Vault for tasks matching any date specified in the query (e.g. "25/07/2026").
-     - List all matching tasks clearly (showing if completed or pending).
+1. MARK TASK COMPLETE ("complete", "done", "ho gaya", "kar diya", "finish"):
+   - Set "action": "complete_task".
+   - Extract "targetTaskTitle": Clean name of the task to mark done.
 
-2. TASK CREATION INTENT (ONLY WHEN USER EXPLICITLY COMMANDS CREATION):
-   - If the user explicitly commands to add, set, or remind (e.g. "27/07/2026 add a task for call guests", "add math homework tomorrow"):
-     - Extract a CLEAN title: Strip filler phrases like "add a task for", "task for", "a task of", "remind me to", "please".
-     - Example: "27/07/2026 add a task for call gastes" -> Clean Title: "Call Guests"
-     - Convert dates to YYYY-MM-DD format (Default: "${currentDate}").
-     - Set "action": "create_task".
+2. DELETE TASK ("delete", "remove", "hatao", "hata do"):
+   - Set "action": "delete_task".
+   - Extract "targetTaskTitle": Clean name of the task to delete.
 
-3. Return ONLY a valid JSON object matching this structure:
+3. QUESTION / INQUIRY PRECEDENCE (NEVER CREATE A TASK WHEN USER IS ASKING A QUESTION):
+   - If query contains question words ("keya", "kya", "thaa", "tha", "kab", "kabv", "bataw", "batao", "dikhao", "check", "when", "what", "where", "how", "tell", "show"):
+     - Set "action": "list_tasks" or "chat".
+     - List matching tasks from Tasks Vault.
+
+4. CREATE TASK (ONLY ON EXPLICIT ADD COMMANDS):
+   - Set "action": "create_task".
+   - Extract a clean sanitized title (strip "add a task for", "remind me to", etc.).
+
+5. Return ONLY a valid JSON object matching this structure:
 {
-  "action": "create_task" or "chat" or "list_tasks",
-  "task": {
-    "title": "Clean Sanitized Title",
-    "dueDate": "YYYY-MM-DD",
-    "dueTime": "HH:MM",
-    "priority": "high",
-    "category": "college"
-  },
+  "action": "create_task" | "complete_task" | "delete_task" | "list_tasks" | "chat",
+  "task": { "title": "Clean Title", "dueDate": "YYYY-MM-DD", "priority": "high" },
+  "targetTaskTitle": "Clean Target Task Name",
   "replyMessage": "Friendly, clear response in Hinglish/English."
 }`;
 
-  // Try API endpoints in sequence
   const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
 
   for (const model of models) {
@@ -109,11 +108,10 @@ CRITICAL CLASSIFICATION & SANITIZATION RULES:
         }
       }
     } catch (err) {
-      console.warn(`Gemini API ${model} failed, running local intelligent parser fallback...`);
+      console.warn(`Gemini API ${model} failed, running advanced local parser fallback...`);
     }
   }
 
-  // Fallback intelligent parser if API call fails or key is unverified
   return fallbackIntelligentParser(userQuery, currentDate, contextInfo, conversationHistory);
 }
 
@@ -125,7 +123,7 @@ function fallbackIntelligentParser(
 ): GeminiParsedResponse {
   const lower = query.toLowerCase().trim();
 
-  // Extract target date if present in query
+  // Smart Relative & Absolute Date Resolver
   let targetDate = currentDate;
   const dateMatch = query.match(/(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})/);
   if (dateMatch) {
@@ -137,9 +135,37 @@ function fallbackIntelligentParser(
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
     targetDate = tmr.toISOString().split('T')[0];
+  } else if (lower.includes('parso') || lower.includes('day after tomorrow')) {
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 2);
+    targetDate = dayAfter.toISOString().split('T')[0];
   }
 
-  // Question / Inquiry Markers (EXPANDED PHONETIC HINGLISH MATCHER)
+  // 1. Task Completion Intent
+  if (lower.includes('complete') || lower.includes('kar diya') || lower.includes('ho gaya') || lower.includes('finish') || lower.includes('done')) {
+    const cleanTarget = query
+      .replace(/\b(complete|kar diya|ho gaya|finish|done|task|ko|bhi|karo|kar|do)\b/gi, '')
+      .trim();
+    return {
+      action: 'complete_task',
+      targetTaskTitle: cleanTarget || 'Task',
+      replyMessage: `🎉 Maine "${cleanTarget || 'Task'}" ko Task Manager me COMPLETED mark kar diya hai!`
+    };
+  }
+
+  // 2. Task Deletion Intent
+  if (lower.includes('delete') || lower.includes('remove') || lower.includes('hatao') || lower.includes('hata do')) {
+    const cleanTarget = query
+      .replace(/\b(delete|remove|hatao|hata do|task|ko|bhi|karo|kar|do)\b/gi, '')
+      .trim();
+    return {
+      action: 'delete_task',
+      targetTaskTitle: cleanTarget || 'Task',
+      replyMessage: `🗑️ Maine "${cleanTarget || 'Task'}" ko aapke Task Manager se delete kar diya hai!`
+    };
+  }
+
+  // 3. Question / Inquiry Markers (QUESTION PRECEDENCE)
   const questionWords = [
     'keya', 'kya', 'kyaa', 'thaa', 'tha', 'thi', 'hoga', 'hogi',
     'kab', 'kabv', 'kaun', 'kahan', 'kaha', 'kyun', 'kyu', 
@@ -151,20 +177,17 @@ function fallbackIntelligentParser(
 
   const isQuestion = questionWords.some(w => lower.includes(w));
 
-  // 1. If it's a question (e.g. "25/07/2026 ko keya task thaa", "yh kabv add kiyaa")
   if (isQuestion) {
-    // Check if asking about when a task was added or conversation context
     if (lower.includes('kab') || lower.includes('kabv') || lower.includes('when')) {
       const lastAiMessage = conversationHistory?.filter(m => m.sender === 'ai').slice(-1)[0];
       if (lastAiMessage && lastAiMessage.text.includes('add kar diya hai')) {
         return {
           action: 'chat',
-          replyMessage: `💡 Yeh task abhi aapke request par ${currentDate} को High Priority के साथ आपके Task Manager में add किया गया था!`
+          replyMessage: `💡 Yeh task abhi aapke request par ${currentDate} ko High Priority ke saath add kiya gaya tha!`
         };
       }
     }
 
-    // Search contextInfo for matching tasks for targetDate
     let matchingTasks: string[] = [];
     if (contextInfo) {
       const lines = contextInfo.split('\n');
@@ -184,7 +207,7 @@ function fallbackIntelligentParser(
     };
   }
 
-  // 2. Task Creation (Only when NOT a question AND contains explicit add action)
+  // 4. Task Creation Intent
   const addVerbs = ['add', 'remind', 'create', 'set', 'bana', 'karna', 'karo', 'kar do', 'daal do', 'shamil'];
   const isExplicitAdd = addVerbs.some(v => lower.includes(v));
 
@@ -213,14 +236,14 @@ function fallbackIntelligentParser(
     };
   }
 
-  // 3. General Conversational Advice Fallback
-  let adviceReply = `✨ **Life OS Copilot Guidance:**\n`;
+  // 5. Advanced Life Coaching Advice Fallback
+  let adviceReply = `✨ **Advanced Life OS Copilot Guidance:**\n`;
   if (lower.includes('study') || lower.includes('padh') || lower.includes('exam')) {
     adviceReply += `Consistent study sessions with 45-min Pomodoro blocks generate maximum retention. Schedule 2 hours today for core subjects!`;
   } else if (lower.includes('dsa') || lower.includes('coding') || lower.includes('leetcode')) {
     adviceReply += `For DSA & Coding: Focus on 2 Medium LeetCode problems daily. Start with Arrays & HashMaps before Binary Trees!`;
   } else {
-    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "25/07/2026 ko keya task thaa", "add math assignment tomorrow", ya koi bhi question pooch sakte hain.`;
+    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "25/07/2026 ko keya task thaa", "math task complete kar diya", ya "add physics assignment tomorrow"!`;
   }
 
   return {

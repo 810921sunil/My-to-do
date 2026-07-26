@@ -7,22 +7,24 @@ import {
   X, 
   Sparkles, 
   CheckCircle, 
-  ClipboardList, 
+  Trash2,
   User, 
-  Key,
+  Volume2,
+  VolumeX,
   ChevronDown
 } from 'lucide-react';
 
 export const AiChatWidget: React.FC = () => {
-  const { tasks, addTask, habits } = useData();
+  const { tasks, addTask, updateTask, deleteTask } = useData();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
 
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string; action?: string }>>([
     {
       sender: 'ai',
-      text: 'Namaste! I am your Life OS Gemini AI Copilot. Ask me anything like "aaj ke tasks dikhao", "add math homework tomorrow", or "how to study DSA for 3 hours"!'
+      text: 'Namaste! I am Advanced Life OS Gemini AI Copilot. Ask me anything like "aaj ke tasks dikhao", "add math homework tomorrow", or "math task complete kar diya"!'
     }
   ]);
 
@@ -31,6 +33,19 @@ export const AiChatWidget: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Natural Speech Synthesis Helper
+  const speakText = (text: string) => {
+    if (!isSpeechEnabled || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/[*_#`[\]()]/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {}
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +57,6 @@ export const AiChatWidget: React.FC = () => {
     setLoading(true);
 
     try {
-      // Build comprehensive context from all tasks (pending and completed)
       const allTasksStr = tasks
         .slice(0, 50)
         .map(t => `- [${t.status.toUpperCase()}] ${t.title} (Due: ${t.dueDate}${t.dueTime ? ' ' + t.dueTime : ''}, Priority: ${t.priority})`)
@@ -51,7 +65,7 @@ export const AiChatWidget: React.FC = () => {
       const contextInfo = `Tasks Vault:\n${allTasksStr || 'No tasks found'}`;
       const response = await askGeminiAI(userText, contextInfo, messages);
 
-      // Handle Task Creation if AI detected task creation intent
+      // Handle Task Actions
       if (response.action === 'create_task' && response.task) {
         addTask({
           title: response.task.title,
@@ -62,6 +76,16 @@ export const AiChatWidget: React.FC = () => {
           status: 'not_started',
           subTasks: []
         });
+      } else if (response.action === 'complete_task' && response.targetTaskTitle) {
+        const matching = tasks.find(t => t.title.toLowerCase().includes(response.targetTaskTitle!.toLowerCase()));
+        if (matching) {
+          updateTask({ ...matching, status: 'completed' });
+        }
+      } else if (response.action === 'delete_task' && response.targetTaskTitle) {
+        const matching = tasks.find(t => t.title.toLowerCase().includes(response.targetTaskTitle!.toLowerCase()));
+        if (matching) {
+          deleteTask(matching.id);
+        }
       }
 
       setMessages(prev => [
@@ -72,12 +96,14 @@ export const AiChatWidget: React.FC = () => {
           action: response.action 
         }
       ]);
+
+      speakText(response.replyMessage);
     } catch (err: any) {
       setMessages(prev => [
         ...prev, 
         { 
           sender: 'ai', 
-          text: '⚡ Maine aapki query process kar li hai! Type "27/07/2026 ke task bataw" ya "add math assignment"!' 
+          text: '⚡ Advanced query processed! Type "25/07/2026 ko keya task thaa" ya "add math assignment"!' 
         }
       ]);
     } finally {
@@ -96,7 +122,7 @@ export const AiChatWidget: React.FC = () => {
             <Sparkles className="w-5 h-5 animate-pulse text-amber-300" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-[#060813]" />
           </div>
-          <span className="text-xs font-extrabold tracking-wide">AI Copilot</span>
+          <span className="text-xs font-extrabold tracking-wide">Advanced AI</span>
         </button>
       ) : (
         <div className="w-[360px] sm:w-[400px] h-[520px] rounded-3xl border border-white/10 glass-panel bg-[#070b14]/95 shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -109,19 +135,32 @@ export const AiChatWidget: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-xs font-extrabold text-white tracking-wider flex items-center gap-1.5">
-                  Life OS Gemini AI
+                  Advanced Gemini AI
                   <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">Online</span>
                 </h3>
-                <p className="text-[10px] text-gray-400">Natural Language Productivity Assistant</p>
+                <p className="text-[10px] text-gray-400">Next-Gen Productivity & Task Copilot</p>
               </div>
             </div>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
-            >
-              <ChevronDown className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIsSpeechEnabled(!isSpeechEnabled)}
+                title={isSpeechEnabled ? "Disable Voice Feedback" : "Enable Voice Feedback"}
+                className={`p-1.5 rounded-xl border text-xs transition-all ${
+                  isSpeechEnabled 
+                    ? 'bg-violet-600/20 border-violet-500/40 text-violet-300' 
+                    : 'bg-white/5 border-white/5 text-gray-400'
+                }`}
+              >
+                {isSpeechEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Stream */}
@@ -150,6 +189,20 @@ export const AiChatWidget: React.FC = () => {
                     <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
                       <CheckCircle className="w-3.5 h-3.5" />
                       <span>Task added to Task Manager</span>
+                    </div>
+                  )}
+
+                  {msg.action === 'complete_task' && (
+                    <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>Task marked COMPLETED</span>
+                    </div>
+                  )}
+
+                  {msg.action === 'delete_task' && (
+                    <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1.5 text-[10px] text-rose-400 font-bold">
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Task removed from vault</span>
                     </div>
                   )}
                 </div>
@@ -193,10 +246,10 @@ export const AiChatWidget: React.FC = () => {
               ➕ Add assignment
             </button>
             <button
-              onClick={() => setInputMessage('how to study 3 hours today')}
+              onClick={() => setInputMessage('math homework complete kar diya')}
               className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 whitespace-nowrap border border-white/5"
             >
-              💡 Study advice
+              ✅ Complete task
             </button>
           </div>
 
@@ -206,7 +259,7 @@ export const AiChatWidget: React.FC = () => {
               type="text"
               value={inputMessage}
               onChange={e => setInputMessage(e.target.value)}
-              placeholder="Ask Gemini AI in Hinglish/English..."
+              placeholder="Ask Advanced AI in Hinglish/English..."
               className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-violet-500/50"
             />
             <button
