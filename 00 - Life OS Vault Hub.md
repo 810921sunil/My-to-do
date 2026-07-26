@@ -21,6 +21,7 @@ Welcome to the **Life OS** complete technical and operational documentation vaul
 - [[03 - Android APK & Keystore Guide]] — Permanent keystore signing, Gradle versioning, and GitHub Actions CI/CD.
 - [[04 - Core Modules & Design System]] — Task Manager, 12-Hour AM/PM Time Selector, Notes Vault, and Wellbeing.
 - [[05 - Bug Diagnostics & Fixes Log]] — Comprehensive resolution record for Android WebView blank screen, Firestore async deadlocks, and CORS script loading.
+- [[06 - Gemini AI Integration & Copilot]] — Google Gemini AI Copilot architecture, multi-model fallback pipeline, and natural language intent parsing.
 
 ---
 

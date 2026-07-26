@@ -51,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpe
     { id: 'finance', label: 'Finance Manager', icon: CircleDollarSign, color: 'text-teal-400' },
     { id: 'personal', label: 'Reading & Personal', icon: BookOpen, color: 'text-indigo-400' },
     { id: 'notes', label: 'Notes & Files', icon: FileText, color: 'text-cyan-400' },
+    { id: 'ai', label: 'AI Daily Assistant', icon: BrainCircuit, color: 'text-violet-400' },
     { id: 'activities', label: 'Activity Log', icon: History, color: 'text-indigo-400' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-gray-400' },
   ].filter(item => {

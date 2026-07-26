@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { AiChatWidget } from './components/AiChatWidget';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -14,6 +15,7 @@ import { HealthWellness } from './pages/HealthWellness';
 import { FinanceManager } from './pages/FinanceManager';
 import { PersonalReading } from './pages/PersonalReading';
 import { NotesFileVault } from './pages/NotesFileVault';
+import { AiPlanner } from './pages/AiPlanner';
 import { Settings } from './pages/Settings';
 import { TaskManager } from './pages/TaskManager';
 import { PlacementPrep } from './pages/PlacementPrep';
@@ -240,6 +242,7 @@ export const AppContent: React.FC = () => {
       case 'finance': return <FinanceManager />;
       case 'personal': return <PersonalReading />;
       case 'notes': return <NotesFileVault />;
+      case 'ai': return <AiPlanner />;
       case 'settings': return <Settings />;
       case 'placement': return <PlacementPrep />;
       case 'activities': return <ActivityLogView />;
@@ -657,6 +660,7 @@ export const AppContent: React.FC = () => {
 
       {/* Interactive UI Widgets */}
       <DynamicIsland />
+      <AiChatWidget />
 
       {/* --- QUICK ADD GENERAL OVERLAY MODAL --- */}
       {quickAddType && (
