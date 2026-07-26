@@ -11,10 +11,14 @@
             "id": "d0a422a92afcf69b",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "node_modules/ms/license.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "license"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "node_modules/ms/license.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for license"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "node_modules/ms/license.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links"
+              "title": "Outgoing links from license"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "node_modules/ms/license.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of license"
             }
           }
         ]
@@ -179,6 +186,7 @@
   "active": "d0a422a92afcf69b",
   "lastOpenFiles": [
     "dist/assets/index-Dz7NPAtA.css",
+    "dist/assets/index-BvXITwey.js",
     "dist/assets/index-D4HW5SaM.js",
     "06 - Gemini AI Integration & Copilot.md",
     "Life_OS_Obsidian_Vault/06 - Gemini AI Integration & Copilot.md",

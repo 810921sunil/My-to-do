@@ -50,7 +50,7 @@ export const AiChatWidget: React.FC = () => {
         .join('\n');
 
       const contextInfo = `Active Tasks:\n${activeTasksStr || 'No active tasks found'}`;
-      const response = await askGeminiAI(userText, contextInfo);
+      const response = await askGeminiAI(userText, contextInfo, messages);
 
       // Handle Task Creation if AI detected task creation intent
       if (response.action === 'create_task' && response.task) {

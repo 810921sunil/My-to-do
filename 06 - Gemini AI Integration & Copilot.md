@@ -17,35 +17,34 @@ Back to [[00 - Life OS Vault Hub]]
 
 ---
 
-## ⚡ Multi-Model Fallback Pipeline
+## 🧠 Advanced Intent Recognition & Precedence Rules
 
-To ensure 100% uptime and zero service interruptions, the AI service (`geminiService.ts`) uses an automatic multi-model fallback pipeline:
+To prevent accidental task creation when users ask questions (e.g. *"yh kab add kiyaa"*), the parser enforces **Question Precedence**:
 
 ```
-                  +-----------------------------------+
-                  |        User Natural Query         |
-                  +-----------------+-----------------+
-                                    |
-                                    v
-                  +-----------------------------------+
-                  |      Google Gemini 2.0 Flash      |
-                  +-----------------+-----------------+
-                                    | (if unverified/busy)
-                                    v
-                  +-----------------------------------+
-                  |      Google Gemini 1.5 Flash      |
-                  +-----------------+-----------------+
-                                    | (if unverified/busy)
-                                    v
-                  +-----------------------------------+
-                  |       Google Gemini 1.5 Pro       |
-                  +-----------------+-----------------+
-                                    | (offline fallback)
-                                    v
-                  +-----------------------------------+
-                  |  Local Rule Engine (Zero Lag)     |
-                  +-----------------------------------+
+[User Input Query]
+       |
+       v
+Has Question Markers? ("kab", "kya", "when", "what", "dikhao", "bataw", "check")
+   |
+   +---> YES ---> Force Intent: "chat" or "list_tasks" (NEVER create task)
+   |
+   +---> NO  ---> Contains Action Verbs? ("add", "create", "remind", "set")
+                     |
+                     +---> YES ---> Intent: "create_task"
+                     |              Title Sanitizer: Strip "a task for", "remind me to", etc.
+                     |
+                     +---> NO  ---> Intent: "chat"
 ```
+
+---
+
+## 🧼 Natural Language Title Sanitizer Rules
+
+When extracting titles from raw natural prompts:
+- `"27/07/2026 add a task for call gastes"` ➔ **Clean Title:** `"Call Guests"`
+- `"kal 5 baje add math assignment"` ➔ **Clean Title:** `"Math Assignment"`
+- `"remind me to buy groceries on 28/07/2026"` ➔ **Clean Title:** `"Buy Groceries"`
 
 ---
 
@@ -54,18 +53,8 @@ To ensure 100% uptime and zero service interruptions, the AI service (`geminiSer
 | Action Type | Intent Trigger Examples | System Output |
 | :--- | :--- | :--- |
 | **`list_tasks`** | `"aaj ke task bataw"`, `"27/07/2026 ke task dikhao"` | Formats and returns active tasks scheduled for target date. |
-| **`create_task`** | `"add math homework tomorrow"`, `"kal 5 baje gym set kar do"` | Extracts clean title, priority, date, and automatically injects task into `TaskManager`. |
-| **`chat`** | `"how to study 3 hours"`, `"DSA roadmap"` | Provides warm, intelligent coaching advice in Hinglish/English. |
-
----
-
-## 🧩 UI Components
-
-1. **Floating AI Chat Widget (`AiChatWidget.tsx`)**
-   - Fixed bottom-right glassmorphic chat widget accessible from all app tabs.
-
-2. **AI Daily Assistant & Eisenhower Matrix (`AiPlanner.tsx`)**
-   - Full-page analytics workspace for daily schedule optimization and study timelines.
+| **`create_task`** | `"add math homework tomorrow"`, `"27/07/2026 add a task for call gastes"` | Extracts clean title `"Call Guests"`, priority, date, and injects into `TaskManager`. |
+| **`chat`** | `"yh kab add kiyaa"`, `"how to study 3 hours"`, `"DSA roadmap"` | Conversational answer using past message context without creating fake tasks. |
 
 ---
 
@@ -73,3 +62,4 @@ To ensure 100% uptime and zero service interruptions, the AI service (`geminiSer
 - [[00 - Life OS Vault Hub]]
 - [[01 - Architecture Overview]]
 - [[04 - Core Modules & Design System]]
+- [[05 - Bug Diagnostics & Fixes Log]]
