@@ -242,18 +242,6 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right controls */}
       <div className="flex items-center gap-3">
-        {/* Split Screen Mode toggle button */}
-        <button
-          onClick={onToggleSplitScreen}
-          title={isSplitScreen ? "Disable Split Screen View" : "Enable Dual Split Screen View"}
-          className={`p-2 rounded-xl border text-xs font-semibold transition-all ${
-            isSplitScreen 
-              ? 'bg-purple-600/20 border-purple-500/40 text-purple-300 shadow-glow' 
-              : 'bg-white/[0.02] border-white/5 text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          <Columns className="w-4 h-4" />
-        </button>
 
         {/* Floating Quick Add */}
         <div className="relative">

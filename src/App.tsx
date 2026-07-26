@@ -618,43 +618,7 @@ export const AppContent: React.FC = () => {
         
         {/* Page Inner Container */}
         <main className="flex-1 overflow-y-auto p-6 scrollbar-thin">
-          {!isSplitScreen ? (
-            renderPage(activeTab)
-          ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-full">
-              {/* Primary Panel */}
-              <div className="space-y-3 border-r border-white/5 pr-0 xl:pr-4">
-                <div className="flex items-center justify-between bg-white/[0.02] border border-white/5 p-2 rounded-xl text-xs font-bold text-gray-300">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-500" />
-                    Primary Panel ({activeTab.toUpperCase()})
-                  </span>
-                </div>
-                {renderPage(activeTab)}
-              </div>
-
-              {/* Secondary Panel */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-white/[0.02] border border-white/5 p-2 rounded-xl text-xs font-bold text-gray-300">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-purple-500" />
-                    Secondary Split Panel
-                  </span>
-                  <select
-                    value={secondaryTab}
-                    onChange={e => setSecondaryTab(e.target.value)}
-                    className="bg-[#060813] border border-white/5 rounded-lg px-2.5 py-1 text-xs text-gray-300 focus:outline-none"
-                  >
-                    <option value="notes">Rich Notes & Vault</option>
-                    <option value="calendar">Schedule Calendar</option>
-                    <option value="tasks">Central Task Manager</option>
-                    <option value="digital_wellbeing">Digital Wellbeing</option>
-                  </select>
-                </div>
-                {renderPage(secondaryTab)}
-              </div>
-            </div>
-          )}
+          {renderPage(activeTab)}
         </main>
       </div>
 
