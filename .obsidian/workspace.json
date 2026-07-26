@@ -11,10 +11,10 @@
             "id": "d0a422a92afcf69b",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -176,8 +176,14 @@
       "bases:Create new base": false
     }
   },
-  "active": "2ef25fe2267ee940",
+  "active": "d0a422a92afcf69b",
   "lastOpenFiles": [
+    "05 - Bug Diagnostics & Fixes Log.md",
+    "04 - Core Modules & Design System.md",
+    "03 - Android APK & Keystore Guide.md",
+    "02 - Firebase Authentication & Security.md",
+    "01 - Architecture Overview.md",
+    "00 - Life OS Vault Hub.md",
     "Life_OS_Obsidian_Vault/05 - Bug Diagnostics & Fixes Log.md",
     "Life_OS_Obsidian_Vault/04 - Core Modules & Design System.md",
     "Life_OS_Obsidian_Vault/03 - Android APK & Keystore Guide.md",
