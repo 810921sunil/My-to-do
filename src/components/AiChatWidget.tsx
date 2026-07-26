@@ -42,14 +42,13 @@ export const AiChatWidget: React.FC = () => {
     setLoading(true);
 
     try {
-      // Build context from active tasks
-      const activeTasksStr = tasks
-        .filter(t => t.status !== 'completed')
-        .slice(0, 10)
-        .map(t => `- [${t.priority.toUpperCase()}] ${t.title} (Due: ${t.dueDate}${t.dueTime ? ' ' + t.dueTime : ''})`)
+      // Build comprehensive context from all tasks (pending and completed)
+      const allTasksStr = tasks
+        .slice(0, 50)
+        .map(t => `- [${t.status.toUpperCase()}] ${t.title} (Due: ${t.dueDate}${t.dueTime ? ' ' + t.dueTime : ''}, Priority: ${t.priority})`)
         .join('\n');
 
-      const contextInfo = `Active Tasks:\n${activeTasksStr || 'No active tasks found'}`;
+      const contextInfo = `Tasks Vault:\n${allTasksStr || 'No tasks found'}`;
       const response = await askGeminiAI(userText, contextInfo, messages);
 
       // Handle Task Creation if AI detected task creation intent

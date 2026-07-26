@@ -17,44 +17,39 @@ Back to [[00 - Life OS Vault Hub]]
 
 ---
 
-## 🧠 Advanced Intent Recognition & Precedence Rules
+## 📅 Past & Future Date Task Queries ("25/07/2026 ko keya task thaa")
 
-To prevent accidental task creation when users ask questions (e.g. *"yh kab add kiyaa"*), the parser enforces **Question Precedence**:
+To resolve queries asking about past or specific dates (e.g. *"25/07/2026 ko keya task thaa"*), the system inspects **both pending and completed tasks** for the target date:
 
 ```
-[User Input Query]
-       |
-       v
-Has Question Markers? ("kab", "kya", "when", "what", "dikhao", "bataw", "check")
-   |
-   +---> YES ---> Force Intent: "chat" or "list_tasks" (NEVER create task)
-   |
-   +---> NO  ---> Contains Action Verbs? ("add", "create", "remind", "set")
-                     |
-                     +---> YES ---> Intent: "create_task"
-                     |              Title Sanitizer: Strip "a task for", "remind me to", etc.
-                     |
-                     +---> NO  ---> Intent: "chat"
+[User Query: "25/07/2026 ko keya task thaa"]
+                  |
+                  v
+       Extract Date: 2026-07-25
+                  |
+                  v
+       Query Task Vault for 2026-07-25
+       (Matches: Completed Tasks + Pending Tasks)
+                  |
+                  v
+       Returns Formatted Summary:
+       "📋 25/07/2026 ke aapke tasks:
+        1. ✅ [COMPLETED] Call Guests
+        2. ⏳ [PENDING] Chemistry Lab Practical File"
 ```
 
 ---
 
-## 🧼 Natural Language Title Sanitizer Rules
+## 🔤 Hinglish Spelling Normalizer Matrix
 
-When extracting titles from raw natural prompts:
-- `"27/07/2026 add a task for call gastes"` ➔ **Clean Title:** `"Call Guests"`
-- `"kal 5 baje add math assignment"` ➔ **Clean Title:** `"Math Assignment"`
-- `"remind me to buy groceries on 28/07/2026"` ➔ **Clean Title:** `"Buy Groceries"`
+The parser normalizes common phonetic spellings across Hindi/Hinglish dialects:
 
----
-
-## 💬 Supported Intent Actions
-
-| Action Type | Intent Trigger Examples | System Output |
-| :--- | :--- | :--- |
-| **`list_tasks`** | `"aaj ke task bataw"`, `"27/07/2026 ke task dikhao"` | Formats and returns active tasks scheduled for target date. |
-| **`create_task`** | `"add math homework tomorrow"`, `"27/07/2026 add a task for call gastes"` | Extracts clean title `"Call Guests"`, priority, date, and injects into `TaskManager`. |
-| **`chat`** | `"yh kab add kiyaa"`, `"how to study 3 hours"`, `"DSA roadmap"` | Conversational answer using past message context without creating fake tasks. |
+| Phonetic Input | Normalized Intent |
+| :--- | :--- |
+| `keya`, `kyaa`, `kya`, `kya-kya` | What (Question) |
+| `thaa`, `tha`, `thi`, `hoga`, `hogi` | Date Tense Marker |
+| `bataw`, `batao`, `bata`, `bataiye` | List / Tell (Question) |
+| `kab`, `kabv`, `kab-tak` | When (Question) |
 
 ---
 

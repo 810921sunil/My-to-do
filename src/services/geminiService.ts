@@ -47,14 +47,15 @@ Recent Conversation History:
 ${historyText}
 
 User Query: "${userQuery}"
-Context Data / Active Tasks: ${contextInfo || 'No active tasks listed'}
+Context Data / Tasks Vault: ${contextInfo || 'No tasks listed'}
 
 CRITICAL CLASSIFICATION & SANITIZATION RULES:
 
-1. QUESTION PRECEDENCE (NEVER CREATE A TASK IF USER IS ASKING A QUESTION):
-   - If the query contains question markers or inquiry words (e.g. "kab", "kabv", "kya", "kaun", "kahan", "kyun", "kyu", "bataw", "batao", "dikhao", "check", "when", "what", "where", "why", "how", "tell", "show", "list"):
-     - DO NOT CREATE A TASK. Set "action": "chat" or "list_tasks".
-     - Answer the user's question clearly using the Recent Conversation History or Active Tasks context.
+1. QUESTION / INQUIRY PRECEDENCE (NEVER CREATE A TASK WHEN USER IS ASKING A QUESTION):
+   - If the query contains question markers or inquiry words (e.g. "keya", "kya", "kyaa", "thaa", "tha", "kab", "kabv", "kaun", "kahan", "kyun", "kyu", "bataw", "batao", "dikhao", "check", "when", "what", "where", "why", "how", "tell", "show", "list"):
+     - DO NOT CREATE A TASK. Set "action": "list_tasks" or "chat".
+     - Search the Context Data / Tasks Vault for tasks matching any date specified in the query (e.g. "25/07/2026").
+     - List all matching tasks clearly (showing if completed or pending).
 
 2. TASK CREATION INTENT (ONLY WHEN USER EXPLICITLY COMMANDS CREATION):
    - If the user explicitly commands to add, set, or remind (e.g. "27/07/2026 add a task for call guests", "add math homework tomorrow"):
@@ -138,9 +139,10 @@ function fallbackIntelligentParser(
     targetDate = tmr.toISOString().split('T')[0];
   }
 
-  // Question / Inquiry Markers (QUESTION PRECEDENCE OVER ADD VERBS)
+  // Question / Inquiry Markers (EXPANDED PHONETIC HINGLISH MATCHER)
   const questionWords = [
-    'kab', 'kabv', 'kya', 'kaun', 'kahan', 'kaha', 'kyun', 'kyu', 
+    'keya', 'kya', 'kyaa', 'thaa', 'tha', 'thi', 'hoga', 'hogi',
+    'kab', 'kabv', 'kaun', 'kahan', 'kaha', 'kyun', 'kyu', 
     'bataw', 'batao', 'batawo', 'bata', 'bataiye', 'bataao', 
     'dikhao', 'dikaw', 'dekho', 'dekhna', 'show', 'list', 'tell', 
     'what', 'when', 'where', 'why', 'how', 'which', 'check', 'view', 
@@ -149,7 +151,7 @@ function fallbackIntelligentParser(
 
   const isQuestion = questionWords.some(w => lower.includes(w));
 
-  // 1. If it's a question (e.g. "yh kabv add kiyaa", "27/07/2026 ke task bataw")
+  // 1. If it's a question (e.g. "25/07/2026 ko keya task thaa", "yh kabv add kiyaa")
   if (isQuestion) {
     // Check if asking about when a task was added or conversation context
     if (lower.includes('kab') || lower.includes('kabv') || lower.includes('when')) {
@@ -157,17 +159,23 @@ function fallbackIntelligentParser(
       if (lastAiMessage && lastAiMessage.text.includes('add kar diya hai')) {
         return {
           action: 'chat',
-          replyMessage: `💡 Yeh task abhi aapke request par ${currentDate} ko High Priority ke saath aapke Task Manager me add kiya gaya tha!`
+          replyMessage: `💡 Yeh task abhi aapke request par ${currentDate} को High Priority के साथ आपके Task Manager में add किया गया था!`
         };
       }
     }
 
+    // Search contextInfo for matching tasks for targetDate
+    let matchingTasks: string[] = [];
+    if (contextInfo) {
+      const lines = contextInfo.split('\n');
+      matchingTasks = lines.filter(l => l.includes(targetDate));
+    }
+
     let reply = `📋 **${targetDate} ke aapke tasks:**\n`;
-    if (contextInfo && contextInfo.includes('Active Tasks:')) {
-      const tasksSection = contextInfo.split('Active Tasks:')[1];
-      reply += tasksSection.trim();
+    if (matchingTasks.length > 0) {
+      reply += matchingTasks.map((t, idx) => `${idx + 1}. ${t.replace(/^- /, '')}`).join('\n');
     } else {
-      reply += `1. Morning Routine & Hydration Check\n2. College Lecture & Notes Review\n3. Daily Focus Session (45 mins)`;
+      reply += `Is date (${targetDate}) par koi task list nahi mila. Aap "add task" kehkar naya task add kar sakte hain!`;
     }
 
     return {
@@ -181,7 +189,6 @@ function fallbackIntelligentParser(
   const isExplicitAdd = addVerbs.some(v => lower.includes(v));
 
   if (isExplicitAdd) {
-    // Advanced Title Sanitizer: Strip filler phrases cleanly!
     let cleanTitle = query
       .replace(/\b(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{4})\b/gi, '')
       .replace(/\b(add a task for|add task for|a task for|task for|a task to|add task to|add a task|add task|remind me to|remind me|create task|set task|task of|please|pls)\b/gi, '')
@@ -192,7 +199,6 @@ function fallbackIntelligentParser(
       cleanTitle = `Scheduled Task for ${targetDate}`;
     }
 
-    // Capitalize first letter of each word
     const formattedTitle = cleanTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 
     return {
@@ -214,7 +220,7 @@ function fallbackIntelligentParser(
   } else if (lower.includes('dsa') || lower.includes('coding') || lower.includes('leetcode')) {
     adviceReply += `For DSA & Coding: Focus on 2 Medium LeetCode problems daily. Start with Arrays & HashMaps before Binary Trees!`;
   } else {
-    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "aaj ke task bataw", "27/07/2026 add a task for call guests", ya koi bhi question pooch sakte hain.`;
+    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "25/07/2026 ko keya task thaa", "add math assignment tomorrow", ya koi bhi question pooch sakte hain.`;
   }
 
   return {
