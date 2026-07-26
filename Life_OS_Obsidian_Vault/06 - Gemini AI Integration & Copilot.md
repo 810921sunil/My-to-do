@@ -19,6 +19,9 @@ Back to [[00 - Life OS Vault Hub]]
 
 ## 🔑 Live Gemini API Key Pipeline
 
+- **Status:** **Active & Integrated** (`.env` + `geminiService.ts`)
+- **Key Provider:** Google Generative AI REST API (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`)
+
 ```
 +-----------------------------------------------------------+
 |                      USER UI INPUT                        |
@@ -28,7 +31,7 @@ Back to [[00 - Life OS Vault Hub]]
                               v
 +-----------------------------------------------------------+
 |                  geminiService.ts Pipeline                |
-|  1. Inspects localStorage('z_gemini_api_key')             |
+|  1. Inspects VITE_GEMINI_KEY / localStorage               |
 |  2. Calls https://generativelanguage.googleapis.com       |
 |  3. Relays to Express Backend (/api/ai/chat)              |
 |  4. Applies Year-Level Date Parser ("2026 m keya tasks")  |
