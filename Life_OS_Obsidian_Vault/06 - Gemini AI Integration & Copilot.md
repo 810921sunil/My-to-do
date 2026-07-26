@@ -1,41 +1,49 @@
 ---
-title: Advanced Gemini AI Engine & Voice Copilot
+title: Real Google Gemini API Integration & Copilot Architecture
 tags:
   - life-os
   - ai
   - gemini
-  - advanced
-  - voice
+  - live-api
+  - copilot
 date: 2026-07-26
 ---
 
-# 🤖 Advanced Life OS Gemini AI Engine
+# 🤖 Real Google Gemini API Integration & Architecture
 
 Back to [[00 - Life OS Vault Hub]]
 
-The **Advanced Life OS Gemini AI Engine** extends natural language interaction beyond basic task addition to full multi-action workspace control, habit logging, task completion, date arithmetic, and Text-to-Speech (TTS) voice playback.
+**Life OS** connects directly to **Google Generative AI REST API** (`gemini-2.0-flash` & `gemini-1.5-flash`) for real-time LLM inference, conversation memory, and year-level task vault search.
 
 ---
 
-## ⚡ Multi-Action Capability Matrix
+## 🔑 Live Gemini API Key Pipeline
 
-| Action Intent | Natural Prompt Examples | System Execution |
-| :--- | :--- | :--- |
-| **`create_task`** | `"27/07/2026 add a task for call guests"`, `"kal 5 baje gym session set kar do"` | Extracts clean title, priority, date, and injects into `TaskManager`. |
-| **`complete_task`** | `"math homework complete kar diya"`, `"finish chemistry lab report"` | Finds target task by title match and marks `status: 'completed'`. |
-| **`delete_task`** | `"delete physics assignment"`, `"remove old gym task"` | Locates and removes matching task from vault. |
-| **`list_tasks`** | `"aaj ke task bataw"`, `"25/07/2026 ko keya task thaa"` | Formats and returns active + completed tasks summary for target date. |
-| **`chat`** | `"how to study 3 hours"`, `"DSA roadmap"`, `"motivation"` | Provides personalized behavioral coaching advice. |
+```
++-----------------------------------------------------------+
+|                      USER UI INPUT                        |
+|  (AiChatWidget / Settings.tsx / Local Storage Vault)      |
++-----------------------------+-----------------------------+
+                              |
+                              v
++-----------------------------------------------------------+
+|                  geminiService.ts Pipeline                |
+|  1. Inspects localStorage('z_gemini_api_key')             |
+|  2. Calls https://generativelanguage.googleapis.com       |
+|  3. Relays to Express Backend (/api/ai/chat)              |
+|  4. Applies Year-Level Date Parser ("2026 m keya tasks")  |
++-----------------------------------------------------------+
+```
 
 ---
 
-## 🎙️ Voice Synthesis & Interactive UI
+## 📆 Year & Month Level Date Parsing ("2026 m keya keya tasks h")
 
-1. **Browser Text-to-Speech (`window.speechSynthesis`)**
-   - Optional audio speaker button inside `AiChatWidget.tsx` allowing the AI to read responses out loud.
+When users ask broad date queries (e.g. *"2026 m keya keya tasks h"* or *"July ke tasks"*):
 
-2. **Smart Date Resolver**
-   - Resolves relative phrases (*"aaj"*, *"kal"*, *"parso"*, *"next Monday"*) and absolute formats (*"27/07/2026"*, *"2026-07-27"*).
+- **Year Matching:** Filters tasks where `dueDate` starts with `2026-`.
+- **Month Matching:** Filters tasks matching target month.
+- **Output:** Grouped list of all tasks scheduled across the requested timeframe.
 
 ---
 

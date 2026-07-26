@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { askGeminiAI } from '../services/geminiService';
+import { askGeminiAI, getGeminiApiKey, setGeminiApiKey } from '../services/geminiService';
 import { 
   Bot, 
   Send, 
@@ -11,6 +11,7 @@ import {
   User, 
   Volume2,
   VolumeX,
+  Key,
   ChevronDown
 } from 'lucide-react';
 
@@ -20,11 +21,13 @@ export const AiChatWidget: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(getGeminiApiKey());
 
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string; action?: string }>>([
     {
       sender: 'ai',
-      text: 'Namaste! I am Advanced Life OS Gemini AI Copilot. Ask me anything like "aaj ke tasks dikhao", "add math homework tomorrow", or "math task complete kar diya"!'
+      text: 'Namaste! I am Advanced Life OS Gemini AI Copilot. Ask me anything like "2026 m keya keya tasks h", "add math homework tomorrow", or "math task complete kar diya"!'
     }
   ]);
 
@@ -34,7 +37,6 @@ export const AiChatWidget: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Natural Speech Synthesis Helper
   const speakText = (text: string) => {
     if (!isSpeechEnabled || !('speechSynthesis' in window)) return;
     try {
@@ -45,6 +47,16 @@ export const AiChatWidget: React.FC = () => {
       utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
     } catch (e) {}
+  };
+
+  const handleSaveKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    setGeminiApiKey(apiKeyInput);
+    setShowKeyModal(false);
+    setMessages(prev => [
+      ...prev,
+      { sender: 'ai', text: '🔑 Gemini API Key saved successfully! Live Google Gemini LLM API is active.' }
+    ]);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -65,7 +77,6 @@ export const AiChatWidget: React.FC = () => {
       const contextInfo = `Tasks Vault:\n${allTasksStr || 'No tasks found'}`;
       const response = await askGeminiAI(userText, contextInfo, messages);
 
-      // Handle Task Actions
       if (response.action === 'create_task' && response.task) {
         addTask({
           title: response.task.title,
@@ -103,7 +114,7 @@ export const AiChatWidget: React.FC = () => {
         ...prev, 
         { 
           sender: 'ai', 
-          text: '⚡ Advanced query processed! Type "25/07/2026 ko keya task thaa" ya "add math assignment"!' 
+          text: '⚡ Live query processed! Type "2026 m keya keya tasks h" ya "add math assignment"!' 
         }
       ]);
     } finally {
@@ -122,7 +133,7 @@ export const AiChatWidget: React.FC = () => {
             <Sparkles className="w-5 h-5 animate-pulse text-amber-300" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-[#060813]" />
           </div>
-          <span className="text-xs font-extrabold tracking-wide">Advanced AI</span>
+          <span className="text-xs font-extrabold tracking-wide">Gemini AI</span>
         </button>
       ) : (
         <div className="w-[360px] sm:w-[400px] h-[520px] rounded-3xl border border-white/10 glass-panel bg-[#070b14]/95 shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -135,14 +146,22 @@ export const AiChatWidget: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-xs font-extrabold text-white tracking-wider flex items-center gap-1.5">
-                  Advanced Gemini AI
-                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">Online</span>
+                  Gemini AI Copilot
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">Live API</span>
                 </h3>
-                <p className="text-[10px] text-gray-400">Next-Gen Productivity & Task Copilot</p>
+                <p className="text-[10px] text-gray-400">Google Gemini LLM Productivity Engine</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowKeyModal(true)}
+                title="Configure Gemini API Key"
+                className="p-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-amber-400 transition-all"
+              >
+                <Key className="w-3.5 h-3.5" />
+              </button>
+
               <button
                 onClick={() => setIsSpeechEnabled(!isSpeechEnabled)}
                 title={isSpeechEnabled ? "Disable Voice Feedback" : "Enable Voice Feedback"}
@@ -154,6 +173,7 @@ export const AiChatWidget: React.FC = () => {
               >
                 {isSpeechEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
               </button>
+
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
@@ -162,6 +182,38 @@ export const AiChatWidget: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Gemini API Key Modal */}
+          {showKeyModal && (
+            <div className="p-4 bg-violet-950/40 border-b border-white/10 text-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-amber-300 flex items-center gap-1.5">
+                  <Key className="w-4 h-4" />
+                  Google Gemini API Key
+                </h4>
+                <button onClick={() => setShowKeyModal(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveKey} className="space-y-2">
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={e => setApiKeyInput(e.target.value)}
+                  placeholder="Paste AIZASy... Gemini API Key"
+                  className="w-full bg-[#060813] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400/50"
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-xs"
+                  >
+                    Save API Key
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Messages Stream */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin">
@@ -234,10 +286,10 @@ export const AiChatWidget: React.FC = () => {
           {/* Quick Prompts Suggestions */}
           <div className="px-3 py-1.5 bg-white/[0.01] border-t border-white/5 flex gap-1.5 overflow-x-auto scrollbar-none text-[10px]">
             <button
-              onClick={() => setInputMessage('aaj ke task bataw')}
+              onClick={() => setInputMessage('2026 m keya keya tasks h')}
               className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 whitespace-nowrap border border-white/5"
             >
-              📋 Aaj ke tasks?
+              📋 2026 ke tasks?
             </button>
             <button
               onClick={() => setInputMessage('add math assignment tomorrow')}
@@ -259,7 +311,7 @@ export const AiChatWidget: React.FC = () => {
               type="text"
               value={inputMessage}
               onChange={e => setInputMessage(e.target.value)}
-              placeholder="Ask Advanced AI in Hinglish/English..."
+              placeholder="Ask Live Gemini AI in Hinglish/English..."
               className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-violet-500/50"
             />
             <button

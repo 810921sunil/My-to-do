@@ -1,4 +1,4 @@
-// Advanced Gemini AI Engine for Life OS
+// Real Google Gemini API Integration for Life OS
 
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || '';
 
@@ -17,7 +17,7 @@ export interface GeminiParsedResponse {
 
 export const getGeminiApiKey = (): string => {
   const storedKey = localStorage.getItem('z_gemini_api_key');
-  if (storedKey && storedKey.trim().length > 0) return storedKey;
+  if (storedKey && storedKey.trim().length > 0) return storedKey.trim();
   return DEFAULT_GEMINI_KEY;
 };
 
@@ -34,13 +34,12 @@ export async function askGeminiAI(
   const currentDate = new Date().toISOString().split('T')[0];
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // Format conversation history for context
   const historyText = conversationHistory
     ?.slice(-6)
     ?.map(m => `${m.sender.toUpperCase()}: ${m.text}`)
     ?.join('\n') || 'No previous messages';
 
-  const systemInstruction = `You are Advanced Life OS AI Copilot, a high-intelligence productivity engine.
+  const systemInstruction = `You are Advanced Life OS AI Copilot powered by Google Gemini.
 You understand Hinglish, Hindi, and English natural language fluently.
 Current Date: ${currentDate} (${new Date().toLocaleDateString('en-US', { weekday: 'long' })}). Current Time: ${currentTime}.
 
@@ -50,26 +49,31 @@ ${historyText}
 User Query: "${userQuery}"
 Context Data / Tasks Vault: ${contextInfo || 'No tasks listed'}
 
-ADVANCED MULTI-ACTION INTENT RULES:
+CRITICAL LLM INFERENCE RULES:
 
-1. MARK TASK COMPLETE ("complete", "done", "ho gaya", "kar diya", "finish"):
+1. YEAR & MONTH LEVEL TASK INQUIRIES (e.g. "2026 m keya keya tasks h", "july ke tasks"):
+   - Set "action": "list_tasks".
+   - Search Context Data for all tasks matching that year (e.g. "2026") or date pattern.
+   - List all matching tasks clearly with status and due date.
+
+2. MARK TASK COMPLETE ("complete", "done", "ho gaya", "kar diya", "finish"):
    - Set "action": "complete_task".
    - Extract "targetTaskTitle": Clean name of the task to mark done.
 
-2. DELETE TASK ("delete", "remove", "hatao", "hata do"):
+3. DELETE TASK ("delete", "remove", "hatao", "hata do"):
    - Set "action": "delete_task".
    - Extract "targetTaskTitle": Clean name of the task to delete.
 
-3. QUESTION / INQUIRY PRECEDENCE (NEVER CREATE A TASK WHEN USER IS ASKING A QUESTION):
+4. QUESTION / INQUIRY PRECEDENCE (NEVER CREATE A TASK WHEN USER IS ASKING A QUESTION):
    - If query contains question words ("keya", "kya", "thaa", "tha", "kab", "kabv", "bataw", "batao", "dikhao", "check", "when", "what", "where", "how", "tell", "show"):
      - Set "action": "list_tasks" or "chat".
-     - List matching tasks from Tasks Vault.
+     - Answer using Tasks Vault data.
 
-4. CREATE TASK (ONLY ON EXPLICIT ADD COMMANDS):
+5. CREATE TASK (ONLY ON EXPLICIT ADD COMMANDS):
    - Set "action": "create_task".
-   - Extract a clean sanitized title (strip "add a task for", "remind me to", etc.).
+   - Extract clean title (strip "add a task for", "remind me to", etc.).
 
-5. Return ONLY a valid JSON object matching this structure:
+6. Return ONLY a valid JSON object matching this structure:
 {
   "action": "create_task" | "complete_task" | "delete_task" | "list_tasks" | "chat",
   "task": { "title": "Clean Title", "dueDate": "YYYY-MM-DD", "priority": "high" },
@@ -77,38 +81,40 @@ ADVANCED MULTI-ACTION INTENT RULES:
   "replyMessage": "Friendly, clear response in Hinglish/English."
 }`;
 
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+  if (apiKey) {
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
 
-  for (const model of models) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemInstruction }] }]
-          })
+    for (const model of models) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemInstruction }] }]
+            })
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+          try {
+            const parsed: GeminiParsedResponse = JSON.parse(cleanJson);
+            return parsed;
+          } catch (jsonErr) {
+            return {
+              action: 'chat',
+              replyMessage: rawText || "Request processed."
+            };
+          }
         }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        try {
-          const parsed: GeminiParsedResponse = JSON.parse(cleanJson);
-          return parsed;
-        } catch (jsonErr) {
-          return {
-            action: 'chat',
-            replyMessage: rawText || "Request processed."
-          };
-        }
+      } catch (err) {
+        console.warn(`Gemini API ${model} failed, running local parser fallback...`);
       }
-    } catch (err) {
-      console.warn(`Gemini API ${model} failed, running advanced local parser fallback...`);
     }
   }
 
@@ -123,7 +129,11 @@ function fallbackIntelligentParser(
 ): GeminiParsedResponse {
   const lower = query.toLowerCase().trim();
 
-  // Smart Relative & Absolute Date Resolver
+  // 1. Check for Year-Level Queries (e.g. "2026 m keya keya tasks h")
+  const yearMatch = query.match(/\b(20\d\d)\b/);
+  const targetYear = yearMatch ? yearMatch[1] : null;
+
+  // Extract target date if present in query
   let targetDate = currentDate;
   const dateMatch = query.match(/(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})/);
   if (dateMatch) {
@@ -135,13 +145,9 @@ function fallbackIntelligentParser(
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
     targetDate = tmr.toISOString().split('T')[0];
-  } else if (lower.includes('parso') || lower.includes('day after tomorrow')) {
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    targetDate = dayAfter.toISOString().split('T')[0];
   }
 
-  // 1. Task Completion Intent
+  // 2. Task Completion Intent
   if (lower.includes('complete') || lower.includes('kar diya') || lower.includes('ho gaya') || lower.includes('finish') || lower.includes('done')) {
     const cleanTarget = query
       .replace(/\b(complete|kar diya|ho gaya|finish|done|task|ko|bhi|karo|kar|do)\b/gi, '')
@@ -153,7 +159,7 @@ function fallbackIntelligentParser(
     };
   }
 
-  // 2. Task Deletion Intent
+  // 3. Task Deletion Intent
   if (lower.includes('delete') || lower.includes('remove') || lower.includes('hatao') || lower.includes('hata do')) {
     const cleanTarget = query
       .replace(/\b(delete|remove|hatao|hata do|task|ko|bhi|karo|kar|do)\b/gi, '')
@@ -165,7 +171,7 @@ function fallbackIntelligentParser(
     };
   }
 
-  // 3. Question / Inquiry Markers (QUESTION PRECEDENCE)
+  // 4. Question / Inquiry Markers (QUESTION PRECEDENCE)
   const questionWords = [
     'keya', 'kya', 'kyaa', 'thaa', 'tha', 'thi', 'hoga', 'hogi',
     'kab', 'kabv', 'kaun', 'kahan', 'kaha', 'kyun', 'kyu', 
@@ -188,17 +194,23 @@ function fallbackIntelligentParser(
       }
     }
 
+    // Filter tasks by year if year requested, or by date
     let matchingTasks: string[] = [];
     if (contextInfo) {
       const lines = contextInfo.split('\n');
-      matchingTasks = lines.filter(l => l.includes(targetDate));
+      if (targetYear) {
+        matchingTasks = lines.filter(l => l.includes(targetYear));
+      } else {
+        matchingTasks = lines.filter(l => l.includes(targetDate));
+      }
     }
 
-    let reply = `📋 **${targetDate} ke aapke tasks:**\n`;
+    const headerLabel = targetYear ? `${targetYear} saal` : targetDate;
+    let reply = `📋 **${headerLabel} ke aapke tasks:**\n`;
     if (matchingTasks.length > 0) {
       reply += matchingTasks.map((t, idx) => `${idx + 1}. ${t.replace(/^- /, '')}`).join('\n');
     } else {
-      reply += `Is date (${targetDate}) par koi task list nahi mila. Aap "add task" kehkar naya task add kar sakte hain!`;
+      reply += `Is time frame (${headerLabel}) par koi task list nahi mila. Aap "add task" kehkar naya task add kar sakte hain!`;
     }
 
     return {
@@ -207,7 +219,7 @@ function fallbackIntelligentParser(
     };
   }
 
-  // 4. Task Creation Intent
+  // 5. Task Creation Intent
   const addVerbs = ['add', 'remind', 'create', 'set', 'bana', 'karna', 'karo', 'kar do', 'daal do', 'shamil'];
   const isExplicitAdd = addVerbs.some(v => lower.includes(v));
 
@@ -236,14 +248,14 @@ function fallbackIntelligentParser(
     };
   }
 
-  // 5. Advanced Life Coaching Advice Fallback
+  // 6. Advanced Life Coaching Advice Fallback
   let adviceReply = `✨ **Advanced Life OS Copilot Guidance:**\n`;
   if (lower.includes('study') || lower.includes('padh') || lower.includes('exam')) {
     adviceReply += `Consistent study sessions with 45-min Pomodoro blocks generate maximum retention. Schedule 2 hours today for core subjects!`;
   } else if (lower.includes('dsa') || lower.includes('coding') || lower.includes('leetcode')) {
     adviceReply += `For DSA & Coding: Focus on 2 Medium LeetCode problems daily. Start with Arrays & HashMaps before Binary Trees!`;
   } else {
-    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "25/07/2026 ko keya task thaa", "math task complete kar diya", ya "add physics assignment tomorrow"!`;
+    adviceReply += `Main aapki har query me help kar sakta hu! Aap keh sakte hain "2026 m keya keya tasks h", "math task complete kar diya", ya "add physics assignment tomorrow"!`;
   }
 
   return {
