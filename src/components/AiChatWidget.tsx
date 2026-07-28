@@ -286,6 +286,12 @@ export const AiChatWidget: React.FC = () => {
           {/* Quick Prompts Suggestions */}
           <div className="px-3 py-1.5 bg-white/[0.01] border-t border-white/5 flex gap-1.5 overflow-x-auto scrollbar-none text-[10px]">
             <button
+              onClick={() => setInputMessage('aaj ki news')}
+              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 whitespace-nowrap border border-white/5"
+            >
+              📰 Aaj ki news
+            </button>
+            <button
               onClick={() => setInputMessage('2026 m keya keya tasks h')}
               className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 whitespace-nowrap border border-white/5"
             >
@@ -296,12 +302,6 @@ export const AiChatWidget: React.FC = () => {
               className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 whitespace-nowrap border border-white/5"
             >
               ➕ Add assignment
-            </button>
-            <button
-              onClick={() => setInputMessage('math homework complete kar diya')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 whitespace-nowrap border border-white/5"
-            >
-              ✅ Complete task
             </button>
           </div>
 

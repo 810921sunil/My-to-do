@@ -1,6 +1,6 @@
 {
-  "short_name": "ZenithLife",
-  "name": "ZenithLife OS - AI Academic & Career Life Dashboard",
+  "short_name": "Life OS",
+  "name": "Life OS — Productivity & Life Operating System",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#060813",
-  "background_color": "#060813"
+  "theme_color": "#0B0F19",
+  "background_color": "#0B0F19"
 }
