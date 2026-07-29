@@ -1,52 +1,65 @@
 ---
-title: Real Google Gemini API Integration & Copilot Architecture
+title: Advanced Google Gemini AI 2.0 Engine & Persona System
 tags:
   - life-os
   - ai
-  - gemini
-  - live-api
-  - copilot
-date: 2026-07-26
+  - gemini-2.0
+  - autonomous-agent
+  - persona
+date: 2026-07-29
 ---
 
-# 🤖 Real Google Gemini API Integration & Architecture
+# 🤖 Advanced Google Gemini AI 2.0 Engine & Autonomous Copilot
 
 Back to [[00 - Life OS Vault Hub]]
 
-**Life OS** connects directly to **Google Generative AI REST API** (`gemini-2.0-flash` & `gemini-1.5-flash`) for real-time LLM inference, conversation memory, and year-level task vault search.
+**Life OS** features an **Advanced Autonomous AI 2.0 Engine** powered by Google Gemini API. It combines real-time LLM inference, autonomous function calling, multi-persona AI switching, hands-free Web Speech TTS synthesis, and proactive workspace diagnostics.
+
+---
+
+## ⚡ Key Capabilities of AI 2.0 Engine
+
+### 1. 🛠️ Autonomous Function Execution
+The AI engine can inspect user prompts and autonomously execute operations across the entire application:
+- `create_task`: Adds tasks with priority, category, and due date.
+- `create_habit`: Sets up new habits with streak counters.
+- `log_water`: Increments daily hydration intake.
+- `add_expense`: Logs financial income or expense transactions.
+- `calculate_cgpa`: Predicts required SGPA targets.
+
+### 2. 🎭 Multi-Persona System (`AiPersonaSelector`)
+Users can switch between specialized AI personas:
+- 🎓 **Academic Mentor & Professor:** Focused on semester exams, credit points, and study timetables.
+- 🚀 **FAANG Senior Tech Lead:** Provides code reviews, DSA optimization, and system design architecture.
+- 🧘 **Zen Productivity Coach:** Focuses on anti-procrastination, habit streaks, and mindset balance.
+- 💰 **Financial Wealth Advisor:** Expense budgeting and savings optimization.
+
+### 3. 🗣️ Hands-Free Web Speech TTS Synthesis
+Built-in Speech Synthesis reads AI responses aloud in clean natural audio for hands-free study and coding sessions.
+
+### 4. 🔮 Proactive Workspace Diagnostics
+Scans workspace data (tasks delayed, habit compliance %, CGPA trajectory, expense burn rate) to generate 1-click **AI Executive Life Insights**.
 
 ---
 
 ## 🔑 Live Gemini API Key Pipeline
 
-- **Status:** **Active & Integrated** (`.env` + `geminiService.ts`)
-- **Key Provider:** Google Generative AI REST API (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`)
-
 ```
 +-----------------------------------------------------------+
 |                      USER UI INPUT                        |
-|  (AiChatWidget / Settings.tsx / Local Storage Vault)      |
+|  (AiChatWidget / AiPlanner / AiLifeInsights)              |
 +-----------------------------+-----------------------------+
                               |
                               v
 +-----------------------------------------------------------+
-|                  geminiService.ts Pipeline                |
-|  1. Inspects VITE_GEMINI_KEY / localStorage               |
-|  2. Calls https://generativelanguage.googleapis.com       |
-|  3. Relays to Express Backend (/api/ai/chat)              |
-|  4. Applies Year-Level Date Parser ("2026 m keya tasks")  |
+|               geminiService.ts Advanced Engine            |
+|  1. Checks VITE_GEMINI_KEY / Local Storage                |
+|  2. Injects Active Workspace Context (Tasks, Habits)      |
+|  3. Evaluates Selected Persona System Prompt              |
+|  4. Calls Google Gemini REST API                          |
+|  5. Parses Intent & Auto-Executes App Functions           |
 +-----------------------------------------------------------+
 ```
-
----
-
-## 📆 Year & Month Level Date Parsing ("2026 m keya keya tasks h")
-
-When users ask broad date queries (e.g. *"2026 m keya keya tasks h"* or *"July ke tasks"*):
-
-- **Year Matching:** Filters tasks where `dueDate` starts with `2026-`.
-- **Month Matching:** Filters tasks matching target month.
-- **Output:** Grouped list of all tasks scheduled across the requested timeframe.
 
 ---
 

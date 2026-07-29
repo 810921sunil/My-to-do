@@ -2,6 +2,8 @@
 
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || '';
 
+export type AIPersonaType = 'copilot' | 'academic' | 'tech_lead' | 'productivity' | 'financial';
+
 export interface GeminiParsedResponse {
   action: 'create_task' | 'complete_task' | 'delete_task' | 'list_tasks' | 'chat';
   task?: {
@@ -25,34 +27,57 @@ export const setGeminiApiKey = (key: string): void => {
   localStorage.setItem('z_gemini_api_key', key.trim());
 };
 
+// Web Speech API Text-to-Speech Engine
+export const speakTextWebSpeech = (text: string) => {
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel(); // stop previous speech
+      const cleanText = text.replace(/[*#_`]/g, '').slice(0, 300); // speak summary
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis warning:', e);
+    }
+  }
+};
+
 export async function askGeminiAI(
   userQuery: string,
   contextInfo?: string,
-  conversationHistory?: Array<{ sender: 'user' | 'ai'; text: string }>
+  conversationHistory?: Array<{ sender: 'user' | 'ai'; text: string }>,
+  persona: AIPersonaType = 'copilot'
 ): Promise<GeminiParsedResponse> {
   const apiKey = getGeminiApiKey();
   const currentDate = new Date().toISOString().split('T')[0];
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const personaPrompts: Record<AIPersonaType, string> = {
+    copilot: 'You are Advanced Life OS AI Copilot, a helpful, intelligent assistant for tasks, scheduling, and advice.',
+    academic: 'You are Senior Professor & Academic Mentor. Focus on semester exam targets, SGPA/CGPA formulas, subject credit points, and structured study plans.',
+    tech_lead: 'You are FAANG Senior Software Architect. Provide top-tier code optimization, DSA analysis, system design architecture, and tech interview guidance.',
+    productivity: 'You are Zen Productivity & Mindset Coach. Help the user destroy procrastination, build 365-day habit streaks, and maintain high energy.',
+    financial: 'You are Wealth & Budget Advisor. Give smart advice on expense control, monthly savings targets, and financial discipline.'
+  };
 
   const historyText = conversationHistory
     ?.slice(-6)
     ?.map(m => `${m.sender.toUpperCase()}: ${m.text}`)
     ?.join('\n') || 'No previous messages';
 
-  const systemInstruction = `You are Advanced Life OS AI Copilot.
+  const systemInstruction = `${personaPrompts[persona]}
 Current Date: ${currentDate}. Current Time: ${currentTime}.
 
 User Query: "${userQuery}"
-Context Data / Tasks Vault: ${contextInfo || 'No tasks listed'}
-
-You handle ANY user query in natural Hinglish/English (Tasks, News, Tech, DSA, Study Roadmap, General Knowledge, Chat).
+Context Data / Workspace State: ${contextInfo || 'No extra context'}
 
 Return ONLY a valid JSON:
 {
   "action": "create_task" | "complete_task" | "delete_task" | "list_tasks" | "chat",
   "task": { "title": "Clean Title", "dueDate": "YYYY-MM-DD", "priority": "high" },
   "targetTaskTitle": "Clean Target Task Name",
-  "replyMessage": "Detailed, friendly, clear response in Hinglish/English."
+  "replyMessage": "Detailed, friendly, clear response in natural Hinglish/English."
 }`;
 
   // Only call API if key starts with valid AIza... format

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
+import { askGeminiAI } from '../services/geminiService';
+import { AiLifeInsights } from '../components/AiLifeInsights';
 import { 
   BrainCircuit, 
   Sparkles, 
@@ -176,7 +178,10 @@ export const AiPlanner: React.FC = () => {
       {reportGenerated && !loading && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           
-          {/* Optimized Daily Schedule */}
+          {/* AI Persona Diagnostics Section */}
+          <AiLifeInsights />
+
+          {/* Main Grid: Left Controls + Right Generated Schedule */}
           <div className="p-5 rounded-3xl border border-white/5 glass-panel space-y-4">
             <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-400" />
