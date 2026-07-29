@@ -37,8 +37,14 @@ Users can switch between specialized AI personas:
 ### 3. 🗣️ Hands-Free Web Speech TTS Synthesis
 Built-in Speech Synthesis reads AI responses aloud in clean natural audio for hands-free study and coding sessions.
 
-### 4. 🔮 Proactive Workspace Diagnostics
-Scans workspace data (tasks delayed, habit compliance %, CGPA trajectory, expense burn rate) to generate 1-click **AI Executive Life Insights**.
+### 5. ⚡ AI Universal Command Palette (`Ctrl + K`)
+Natural language command bar accessible from anywhere in the app for instant 1-step action execution.
+
+### 6. 🧠 AI Memory Recall & Historical Search
+Semantic and key-based query engine across past completed tasks, notes, habits, and financial records.
+
+### 7. 📊 AI Workload & Burnout Risk Predictor
+Scans workload density, overdue tasks, and late-night study hours to compute a Burnout Risk Index (Low, Moderate, High) with stress management recommendations.
 
 ---
 

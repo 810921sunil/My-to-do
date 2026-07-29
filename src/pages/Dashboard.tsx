@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
+import { AiBurnoutPredictor } from '../components/AiBurnoutPredictor';
 import { useAuth } from '../context/AuthContext';
 import type { Task } from '../types';
 import { 
@@ -952,7 +953,10 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Target task selectors */}
+            {/* AI Burnout & Energy Predictor */}
+            <AiBurnoutPredictor />
+
+            {/* Main Grid: Left Tasks + Right Analytics */}
             <div className="flex items-center gap-2 border-t border-white/5 pt-2 text-[10px]">
               <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
               <select

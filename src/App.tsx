@@ -39,6 +39,7 @@ import { WeeklyLifeReport } from './pages/WeeklyLifeReport';
 import { SmartAutomations } from './pages/SmartAutomations';
 import { AndroidCompanion } from './pages/AndroidCompanion';
 import { DynamicIsland } from './components/DynamicIsland';
+import { SmartCommandPalette } from './components/SmartCommandPalette';
 import { FloatingAssistant } from './components/FloatingAssistant';
 import { TimePicker12h } from './components/TimePicker12h';
 
@@ -634,6 +635,12 @@ export const AppContent: React.FC = () => {
             <span>Local Offline Mode Active. All updates saved locally in browser vault.</span>
           </div>
         )}
+        {/* Floating AI Chat Copilot Widget */}
+        <AiChatWidget />
+
+        {/* Global AI Command Palette (Ctrl + K) */}
+        <SmartCommandPalette onNavigate={setActiveTab} />
+        
         {/* Header Top Bar */}
         <Header 
           sidebarOpen={sidebarOpen} 
